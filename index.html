@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factor — Strategic Gauntlet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #0c0e12; --bg-card: #14171e; --bg-card-hover: #1a1e28;
+    --bg-section: #111419; --border: #232830; --border-light: #2d3340;
+    --text: #ffffff; --text-dim: #c8cdd6; --text-bright: #ffffff;
+    --accent: #5eead4; --accent-dim: #2d6b63;
+    --warn: #fbbf24; --danger: #f87171; --win: #34d399; --hit: #60a5fa;
+    --fail: #9ca3af; --p1: #f87171; --p2: #fbbf24; --p3: #9ca3af; --purple: #a78bfa;
+}
+* { margin:0; padding:0; box-sizing:border-box; color:#fff !important; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); line-height:1.65; font-size:14.5px; }
+.nav-btn.active,.collapse-header h3,.prose h4,.tab-btn.active,h3.section-title,.ad-name,.gap-id{color:var(--accent)!important}
+.badge-high,.ad-rating.win,.conf-high{color:var(--win)!important}
+.badge-moderate,.ad-rating.hit,.conf-mod{color:var(--hit)!important}
+.badge-p1,.badge-critical{color:var(--danger)!important}
+.badge-p2,.ad-rating.testing{color:var(--warn)!important}
+.badge-new{color:var(--purple)!important}
+.ad-rating.fail,.priority-p3{color:var(--fail)!important}
+.priority-p1{color:var(--p1)!important}
+.priority-p2{color:var(--p2)!important}
+.prose em,.gap-evidence,.text-dim,.nav-btn,.metric,.ad-metric-label,.tab-btn{color:#c8cdd6!important}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.hero{background:linear-gradient(135deg,#0c0e12 0%,#141929 50%,#0c0e12 100%);border-bottom:1px solid var(--border);padding:48px 0 40px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 30% 50%,rgba(94,234,212,0.04) 0%,transparent 60%)}
+.hero-content{position:relative;z-index:1}
+.hero h1{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:8px}
+.hero .subtitle{color:var(--accent);font-size:0.95rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:16px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:20px;color:var(--text-dim);font-size:0.82rem}
+.hero .meta span{display:flex;align-items:center;gap:5px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(12,14,18,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0}
+.nav-inner{display:flex;overflow-x:auto;gap:0;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{background:none;border:none;color:var(--text-dim);padding:12px 18px;font-size:0.8rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif}
+.nav-btn:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.output-section{padding:40px 0 20px}
+.output-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.output-title{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;margin-bottom:24px}
+.collapse-section{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;background:var(--bg-card);overflow:hidden}
+.collapse-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;transition:background 0.15s}
+.collapse-header:hover{background:var(--bg-card-hover)}
+.collapse-header h3{font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:10px}
+.collapse-header .badge{font-size:0.65rem;padding:2px 8px;border-radius:100px;font-weight:600;letter-spacing:0.03em}
+.badge-high{background:rgba(52,211,153,0.15)}.badge-moderate{background:rgba(96,165,250,0.15)}
+.badge-p1{background:rgba(248,113,113,0.15)}.badge-p2{background:rgba(251,191,36,0.15)}
+.badge-critical{background:rgba(248,113,113,0.2)}.badge-new{background:rgba(167,139,250,0.15)}
+.collapse-arrow{font-size:1.2rem;color:var(--text-dim);transition:transform 0.25s;flex-shrink:0}
+.collapse-section.open .collapse-arrow{transform:rotate(180deg)}
+.collapse-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.collapse-section.open .collapse-body{max-height:80000px}
+.collapse-content{padding:0 20px 20px;border-top:1px solid var(--border)}
+.prose{line-height:1.72}.prose p{margin-bottom:14px}.prose strong{font-weight:600}
+.prose h4{font-size:0.92rem;font-weight:700;color:var(--accent);margin:20px 0 8px}
+.prose em{color:var(--text-dim)}.prose ul{margin:8px 0 14px 20px}.prose li{margin-bottom:4px}
+.table-wrap{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{text-align:left;padding:8px 12px;background:rgba(94,234,212,0.06);color:var(--accent);font-weight:600;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.ad-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}
+.ad-card{background:var(--bg-section);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;transition:border-color 0.2s,transform 0.15s}
+.ad-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.ad-rank{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.75);color:var(--accent);font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;z-index:2;backdrop-filter:blur(4px)}
+.ad-media{aspect-ratio:4/5;max-height:220px;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ad-media video,.ad-media img{width:100%;height:100%;object-fit:contain}
+.ad-media video{background:#000}
+.media-error{color:var(--text-dim);font-size:0.75rem;text-align:center;padding:40px 12px}
+.ad-info{padding:10px 12px}
+.ad-name{font-size:0.75rem;font-weight:500;margin-bottom:6px;line-height:1.4;word-break:break-all}
+.ad-rating{display:inline-block;font-size:0.62rem;font-weight:700;padding:1px 7px;border-radius:3px;letter-spacing:0.05em;margin-bottom:6px}
+.ad-rating.win{background:rgba(52,211,153,0.15)}.ad-rating.hit{background:rgba(96,165,250,0.15)}
+.ad-rating.fail{background:rgba(156,163,175,0.1)}.ad-rating.testing{background:rgba(251,191,36,0.1)}
+.ad-metrics{display:flex;flex-wrap:wrap;gap:8px}
+.metric{font-size:0.7rem;color:var(--text-dim)}.metric b{color:var(--text-bright)}
+.sketch{background:rgba(94,234,212,0.04);border-left:3px solid var(--accent-dim);padding:12px 16px;margin:10px 0;border-radius:0 6px 6px 0}
+.sketch-title{font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:4px}
+.sketch-body{font-size:0.82rem;line-height:1.6}
+.callout{padding:14px 18px;border-radius:6px;margin:14px 0;font-size:0.85rem}
+.callout-warn{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2)}
+.callout-danger{background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2)}
+.callout-info{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15)}
+.gap-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:12px}
+.gap-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.gap-id{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent);font-weight:500}
+.gap-priority{font-size:0.62rem;font-weight:700;padding:1px 7px;border-radius:3px;letter-spacing:0.04em}
+.priority-p1{background:rgba(248,113,113,0.15)}.priority-p2{background:rgba(251,191,36,0.15)}.priority-p3{background:rgba(156,163,175,0.1)}
+.gap-desc{font-weight:600;font-size:0.88rem;margin-bottom:6px}
+.gap-evidence{font-size:0.78rem;color:var(--text-dim);line-height:1.55;margin-bottom:8px}
+.gap-tags{display:flex;flex-wrap:wrap;gap:6px}
+.gap-tag{font-size:0.62rem;padding:2px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:3px;color:var(--text-dim)}
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab-btn{background:none;border:none;color:var(--text-dim);padding:10px 16px;font-size:0.8rem;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.tab-btn:hover{color:var(--text)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}.tab-content.active{display:block}
+.one-para{font-size:0.92rem;line-height:1.8;padding:20px 24px;background:linear-gradient(135deg,rgba(94,234,212,0.03),rgba(167,139,250,0.03));border:1px solid var(--border);border-radius:8px;margin-bottom:20px}
+.confidence{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:4px;margin-top:10px}
+.conf-high{background:rgba(52,211,153,0.1)}.conf-mod{background:rgba(96,165,250,0.1)}.conf-low{background:rgba(251,191,36,0.1)}
+.page-section{display:none}.page-section.active{display:block}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.json-block{background:var(--bg-section);border:1px solid var(--border);border-radius:6px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;line-height:1.5;overflow-x:auto;max-height:500px;overflow-y:auto;white-space:pre}
+@media(max-width:768px){.hero h1{font-size:1.6rem}.ad-grid{grid-template-columns:repeat(2,1fr)}.collapse-content{padding:0 14px 14px}}
+</style>
+</head>
+<body>
+<div id="pw-gate" style="position:fixed;inset:0;z-index:9999;background:#0c0e12;display:flex;align-items:center;justify-content:center">
+<div style="text-align:center">
+<h1 style="font-family:'Fraunces',serif;font-size:2rem;margin-bottom:8px">Factor</h1>
+<p style="color:#c8cdd6;font-size:0.85rem;margin-bottom:20px">Strategic Gauntlet · April 2026</p>
+<input id="pw-input" type="password" placeholder="Enter password" autofocus
+ style="background:#14171e;border:1px solid #232830;border-radius:6px;padding:10px 16px;font-size:0.9rem;color:#fff;width:240px;font-family:'DM Sans',sans-serif;outline:none"
+ onkeydown="if(event.key==='Enter')checkPw()">
+<br><br>
+<button onclick="checkPw()" style="background:#5eead4;color:#0c0e12;border:none;border-radius:6px;padding:8px 24px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Enter</button>
+<p id="pw-err" style="color:#f87171;font-size:0.78rem;margin-top:12px;display:none">Incorrect password</p>
+</div>
+</div>
+<script>
+function checkPw(){
+var p=document.getElementById('pw-input').value;
+if(p==='factor2026'){
+document.getElementById('pw-gate').style.display='none';
+sessionStorage.setItem('factor_auth','1');
+}else{document.getElementById('pw-err').style.display='block'}
+}
+if(sessionStorage.getItem('factor_auth')==='1'){document.getElementById('pw-gate').style.display='none'}
+</script>
+
+
+
+<!-- HERO -->
+<div class="hero"><div class="container hero-content">
+    <div class="subtitle">Strategic Gauntlet · Roundtable-Edited</div>
+    <h1>Factor</h1>
+    <div class="meta">
+        <span>📅 April 15, 2026</span><span>💰 $5.3M L30 · $71.2M Lifetime</span>
+        <span>📊 87 L30 Ads · 100 Lifetime Top Ads</span><span>🔑 TS 12.1% → 16% wallet share</span>
+    </div>
+</div></div>
+<div class="nav"><div class="container"><div class="nav-inner">
+    <button class="nav-btn active" onclick="showPage('overview')">Intelligence Overview</button>
+    <button class="nav-btn" onclick="showPage('gaps')">Gaps Table</button>
+    <button class="nav-btn" onclick="showPage('adlib')">Ad Library</button>
+    <button class="nav-btn" onclick="showPage('competitors')">Competitors</button>
+    <button class="nav-btn" onclick="showPage('research')">Consumer Research</button>
+    <button class="nav-btn" onclick="showPage('client')">Client Context</button>
+</div></div></div>
+<div class="container">
+
+<div class="page-section active" id="page-overview">
+<div class="output-section">
+    <div class="output-label">Output 1</div>
+    <div class="output-title">Intelligence Overview</div>
+    
+    <div class="collapse-section open"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>The Account in One Paragraph</h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <div class="one-para">Factor is a $5.3M L30 / $71.2M lifetime meal delivery account undergoing a fundamental creative transformation — from a brand-polished, static-dominant, deal-stacking playbook (71% static, 73% voiceless, 64% Elevated Brand at lifetime) to a UGC video testimonial portfolio (72% UGC testimonial video, 81% voiced, 72% Elevated Native in L30). TubeScience holds 12.1% of L30 spend ($644K) across 16 ads with a 25% WIN rate — dramatically underweight against client creative (53.5% WIN rate, $4.7M spend). But the trajectory is sharply positive: wallet share inflected from 4% to 16% in eight weeks, TS CPA ($232) is now competitive with client CPA ($238), and the partnership scope just unlocked whitelisting for the first time. The strategic moment demands TS prove it can produce creative the client cannot replicate — because the client's internal team has improved dramatically, is adapting TS headers, and is producing influencer/Sakara campaigns that TS cannot match on talent access.</div>
+        <h4 style="margin-top:24px">Top Ads — Recent Window</h4>
+        <p style="font-size:0.78rem;color:var(--text-dim)"><em>Ads launched Oct 2025+ from lifetime dataset. These are the ads driving current performance.</em></p>
+        <div class="ad-grid"><div class="ad-card"><div class="ad-rank">#1</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1185491333130996.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_Peak-II-New-Retargeting_V1_0_0_27-8PD</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$2,844,136</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#2</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/25166412416385147.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_30_rrayyme_REMIFA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,551,633</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#3</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/1409766000768579.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_40_michaelh_MICHA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,157,384</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#4</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1197416421814965.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_C47-RTG-H3_V1_0_0_3E-3LXZB_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$889,540</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#5</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6945439157005.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_C2-H4_V1_30_HannahKaufman_10-NJ9P</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$807,458</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#6</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_1181639560834095.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_C23_V1_13_0_O1-KCF1R_Meta-4x5_0_N</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$798,429</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#7</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1560232191964942.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_BAU-Retargeting_V1_0_0_2D-I6HXF_Meta-</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$745,499</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#8</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_832283942846225.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_UF-C1_V1_33_0_0N-YLPYA_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$597,637</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#9</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/831936019709276.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_30_yovana_YOVANAF</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$582,808</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#10</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/1164828469179513.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_AGE-TS_BAU_WeigthLoss_V1A_30_0_BE-RJ69V_M</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$556,434</b></span></div></div></div></div>
+    </div></div></div>
+
+    <div class="collapse-section open"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>What's Working and Why <span class="badge badge-high">5 PROVEN</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h4>1. Protein Specificity — $1.2M+ L30, $12.5M+ lifetime, 8/18 test ad sets</h4>
+        <p>"Up to 50g protein in 2 minutes" — most versatile mechanism. Table stakes. Highly scriptable, so TS must differentiate on format.</p>
+        <h4>2. Curiosity-Gap / Withheld-Information — $127K WIN, 93% concentration</h4>
+        <p>"Here's what they DON'T tell you about Factor" — TS's strongest proprietary mechanism. Won decisively. Scale immediately.</p>
+        <h4>3. Soft Testimonial Entry — $227K across 4 test ad sets, 2 WINs</h4>
+        <p>Soft openers beat harder hooks for influencer creative. Critical for whitelisting partnership content.</p>
+        <h4>4. "Future You" Longevity Hook — $77K WIN, 95.7% concentration</h4>
+        <p>Text-only V-NO-VOICE Product Demo. Connects lifetime's $51.6M voiceless strength to video.</p>
+        <h4>5. Energy Transformation — $40K HIT, 94.3% concentration, directional</h4>
+        <p>"My energy completely changed" — differentiated outcome angle. Monitoring for scale confirmation.</p>
+    </div></div></div>
+
+    <div class="collapse-section open"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>What's Broken <span class="badge badge-critical">5 STRUCTURAL</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h4>1. TS Builds in the Client's Strongest Lane</h4>
+        <p>Client WIN rate 53.5% vs TS 25%. TS must differentiate on format and angle, not compete in UGC testimonial.</p>
+        <h4>2. Five Consumer-Validated Angles Untested</h4>
+        <p>Anti-DoorDash, subscription trust, solo-dweller, 45+ personas, GLP-1 — all multi-source validated, zero representation.</p>
+        <h4>3. Statics Ban = Format Prison</h4>
+        <p>"No statics at all" eliminates $50.7M of the lifetime playbook for TS. Must own video-first formats.</p>
+        <h4>4. UGC Concentration Replaced Static Concentration</h4>
+        <p>72% UGC testimonial (L30) replaced 71% static (lifetime). TS's role: format diversification layer.</p>
+        <h4>5. Whitelisting Unlock Is Time-Sensitive</h4>
+        <p>Three talents being locked in NOW. Lifetime proves whitelist works ($17.6M). Get ads live within 2 weeks.</p>
+    </div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>TS Value Assessment</h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <p>TS has <strong>one ad</strong> in the all-time top 100. Defensible value: <strong>(1)</strong> Format innovation (skits, street interviews, screen recordings), <strong>(2)</strong> Angle pioneering (untouched territory nobody has claimed), <strong>(3)</strong> Whitelisting (new Entity IDs the client can't control).</p>
+        <div class="callout callout-danger"><strong>Next sprint must prove:</strong> At least one format-moated concept outside UGC testimonial that scales past $50K with competitive CPA.</div>
+    </div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Constraints</h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content"><div class="table-wrap"><table>
+        <tr><th>Constraint</th><th>Source</th><th>Impact</th><th>Workaround</th></tr>
+        <tr><td>No statics for TS</td><td>Client</td><td>BoF static, carousel (TBC) blocked</td><td>Video-only</td></tr>
+        <tr><td>Deal not in first 15s</td><td>B&L</td><td>Hooks must be value/problem/outcome</td><td>End-CTA only</td></tr>
+        <tr><td>Videos ≤35s</td><td>B&L</td><td>Caps length</td><td>Reels-native alignment</td></tr>
+        <tr><td>"Healthier" not "healthy"</td><td>B&L</td><td>Language</td><td>Copy compliance</td></tr>
+        <tr><td>Can't claim affordable/cheap</td><td>B&L</td><td>Price messaging</td><td>"Cheaper than takeout" allowed</td></tr>
+        <tr><td>Can't claim portion-controlled</td><td>B&L</td><td>GLP-1 concepts</td><td>"Designed for" language</td></tr>
+        <tr><td>"Up to" required for protein</td><td>B&L</td><td>"Up to 50g" only</td><td>Standard</td></tr>
+        <tr><td>Position as premium</td><td>B&L</td><td>No budget framing</td><td>"Worth it" vs takeout</td></tr>
+        <tr><td>Meredith reviews Thursdays</td><td>Client</td><td>7-14 day delay</td><td>Whitelist routing</td></tr>
+    </table></div></div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Open Questions</h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content"><div class="table-wrap"><table>
+        <tr><th>Question</th><th>Who Resolves</th><th>Impact</th></tr>
+        <tr><td>Carousels blocked under statics ban?</td><td>Melissa → Tommy</td><td>CG-7 dies if yes</td></tr>
+        <tr><td>Kylie Sakaida available?</td><td>Jacob → Tommy</td><td>V-EXPERT unlock</td></tr>
+        <tr><td>"Incremental" framing hold?</td><td>Philip → Stefano</td><td>Scope change risk</td></tr>
+        <tr><td>Street interview buy-in?</td><td>Jacob → Tommy</td><td>CG-1 format variant</td></tr>
+        <tr><td>Whitelist = different approval?</td><td>Jacob → Tommy</td><td>WG-1 partial fix</td></tr>
+        <tr><td>Muscle gain claims?</td><td>Melissa → Client</td><td>Male fitness expansion</td></tr>
+    </table></div></div></div></div>
+</div></div>
+<!-- ===== PAGE: GAPS ===== -->
+<div class="page-section" id="page-gaps">
+<div class="output-section">
+    <div class="output-label">Output 3 · Roundtable-Edited</div>
+    <div class="output-title">Refined Gaps Table</div>
+    
+    <h3 style="font-size:0.95rem;margin-bottom:16px;color:var(--accent)">Creative Gaps</h3>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-1</span>
+            <span class="gap-priority priority-p1">P1</span>
+            <span class="gap-tag">NEW</span>
+            <span class="gap-tag">Rep: Low–Medium</span>
+        </div>
+        <div class="gap-desc">Anti-DoorDash cost comparison — &#x27;cheaper than takeout&#x27; with delivery-app villain + street interview format</div>
+        <div class="gap-evidence">Portfolio: zero. Consumer research: #1 concept. Competitor: zero + Hungryroot $355K format. Lifetime: absent. B&amp;L: takeout comparison allowed.</div>
+
+        <div class="sketch">
+            <div class="sketch-title">My DoorDash Confession POV Scroll</div>
+            <div class="sketch-body">Phone screen DoorDash history ($27, $31, $24). VO: &#x27;I added up last month. $847. On food that left me bloated.&#x27; Factor meal plated. &#x27;Now I spend $270 on chef-crafted meals. Up to 50g protein. It&#x27;s not about spending less — it&#x27;s about getting something worth paying for.&#x27;</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">The $25 Burrito Split-Screen Skit</div>
+            <div class="sketch-body">Left: DoorDash fee stack ($14+$5+$3+$5=$27). Right: Factor meal, macro label (up to 40g protein), clean-label (no seed oils, 95% UPF-free). &#x27;Same price. One leaves you bloated. One is chef-crafted.&#x27; ≤25s.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">Street Interview: How Much on DoorDash?</div>
+            <div class="sketch-body">Interviewer: &#x27;How much did you spend on delivery apps last month?&#x27; Shock reactions. Factor at ~$11/meal. Product demo. Vertical ≤35s. Requires client sign-off.</div>
+        </div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-2</span>
+            <span class="gap-priority priority-p1">P1</span>
+            <span class="gap-tag">NEW</span>
+            <span class="gap-tag">Rep: Low</span>
+        </div>
+        <div class="gap-desc">Subscription trust / cancellation barrier-buster — 4,400+ BBB complaints</div>
+        <div class="gap-evidence">Portfolio: zero. Consumer research: #1 trust barrier. Competitor: zero. Lifetime: absent. B&amp;L: no restriction on showing cancel flow.</div>
+
+        <div class="sketch">
+            <div class="sketch-title">I Found the Cancel Button Before I Ordered</div>
+            <div class="sketch-body">&#x27;Everyone on Reddit told me Factor is impossible to cancel. So before I ordered, I found the cancel button.&#x27; Screen recording: pause/skip/cancel in two taps. BoF video.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">The Worst Thing About Factor</div>
+            <div class="sketch-body">Curiosity-gap: &#x27;The worst thing? You can cancel anytime. Skip weeks. Pause. Two taps. Zero excuses not to try it.&#x27; Adapts proven AntiRefresh mechanism to trust barrier.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">What 4,400 People Got Wrong</div>
+            <div class="sketch-body">&#x27;4,400 people complained about Factor. Here&#x27;s what they don&#x27;t tell you.&#x27; Evolution to 2-tap cancel. Screen recording proof. Clean-label callout.</div>
+        </div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-3</span>
+            <span class="gap-priority priority-p1">P1</span>
+            <span class="gap-tag">ADAPT</span>
+            <span class="gap-tag">Rep: Medium</span>
+        </div>
+        <div class="gap-desc">GLP-1 audience expansion — scale 92% concentration test signal</div>
+        <div class="gap-evidence">Portfolio: $232K Other. Recent test: $13K HIT 92% conc. Consumer research: 6M+ users. Competitor: zero. Client abandoned own GLP-1 creative.</div>
+
+        <div class="sketch">
+            <div class="sketch-title">Why Didn&#x27;t Anyone Tell Me (Scale V1A)</div>
+            <div class="sketch-body">&#x27;Why didn&#x27;t anyone tell me how hard it is to eat enough protein on a GLP-1?&#x27; GLP-1 Balance menu. Up to 37g protein. No seed oils. Dietitian-designed.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">My Doctor Said Eat More Protein Nobody Said How</div>
+            <div class="sketch-body">&#x27;Doctor put me on Ozempic and said eat more protein. That was the whole plan.&#x27; Research spiral → Factor GLP-1 Balance. &#x27;54% of Americans want to eat healthier but only 38% track protein.&#x27;</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">The GLP-1 Meal Nobody Talks About</div>
+            <div class="sketch-body">&#x27;Everyone&#x27;s talking about Ozempic. Nobody&#x27;s talking about what to eat.&#x27; Sad generic plans vs Factor&#x27;s GLP-1 Balance. Reels ≤25s.</div>
+        </div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-4</span>
+            <span class="gap-priority priority-p1">P1</span>
+            <span class="gap-tag">NEW</span>
+            <span class="gap-tag">Rep: Low</span>
+        </div>
+        <div class="gap-desc">Non-fitness persona expansion — solo dwellers, older adults (45+/55+/65+), caregivers</div>
+        <div class="gap-evidence">Portfolio: zero 35+ personas. Lifetime: zero 45+ in top 100 ($74.9M delivery). Consumer research: 3 audiences confirmed. Competitor: zero.</div>
+
+        <div class="sketch">
+            <div class="sketch-title">Cooking for One Is a Scam</div>
+            <div class="sketch-body">Late 20s-30s: &#x27;Why is every recipe for 4 people? I live alone.&#x27; Grocery waste. &#x27;Factor: one meal, one person, up to 50g protein, no food waste.&#x27; Reels ≤25s.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">I&#x27;m 62 and I Eat Better Than My Kids</div>
+            <div class="sketch-body">60s talent: &#x27;My kids tell me to eat healthier. Meanwhile they DoorDash every night.&#x27; Role reversal. 100+ options. Fresh, never frozen.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">I Stopped Cooking and I&#x27;ve Never Eaten Better</div>
+            <div class="sketch-body">50s-60s, living alone: &#x27;After my wife passed, I stopped cooking. Cereal for dinner.&#x27; Factor arrives. MUST be real customer.</div>
+        </div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-5</span>
+            <span class="gap-priority priority-p1">P1</span>
+            <span class="gap-tag">NEW</span>
+            <span class="gap-tag">Rep: Low</span>
+        </div>
+        <div class="gap-desc">Situational video skit — DoorDash receipt, portion myth, meal prep comparison</div>
+        <div class="gap-evidence">Portfolio: zero skits. Consumer research: 3+ skit-ready concepts. Competitor: zero. Client doesn&#x27;t produce skits.</div>
+
+        <div class="sketch">
+            <div class="sketch-title">DoorDash Receipt Skit</div>
+            <div class="sketch-body">Scrolling DoorDash, fee stack. Face falls. Cut to Factor fridge. Microwave 2 min. &#x27;$270/month instead of $800.&#x27; Text-only, no VO. ≤30s.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">Is That Enough Food? Portion-Myth</div>
+            <div class="sketch-body">Tray arrives. Friend: &#x27;That&#x27;s your whole dinner?&#x27; 20 min later: satisfied. &#x27;Deceptively filling.&#x27; Consumer language. ≤30s.</div>
+        </div>
+
+        <div class="sketch">
+            <div class="sketch-title">Sunday Meal Prep vs Me</div>
+            <div class="sketch-body">Split-screen: 3hr meal prep nightmare vs Factor 2 min. Same macros. &#x27;One took 3 hours. One took 2 minutes.&#x27; ≤25s.</div>
+        </div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-6</span>
+            <span class="gap-priority priority-p2">P2</span>
+            <span class="gap-tag">ADAPT</span>
+            <span class="gap-tag">Rep: Medium</span>
+        </div>
+        <div class="gap-desc">Anti-frozen-dinner — &#x27;fresh, never frozen&#x27; as primary hook</div>
+        <div class="gap-evidence">Lifetime: $5M+ as supporting claim. Consumer: &#x27;These aren&#x27;t frozen dinners.&#x27; Competitor: zero as primary hook.</div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-7</span>
+            <span class="gap-priority priority-p2">P2</span>
+            <span class="gap-tag">NEW</span>
+            <span class="gap-tag">Rep: Low</span>
+        </div>
+        <div class="gap-desc">Multi-card carousel — menu variety browse-and-discover</div>
+        <div class="gap-evidence">Portfolio: zero. Consumer: natural carousel content. ⚠️ BLOCKED pending statics ban confirmation.</div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-8</span>
+            <span class="gap-priority priority-p2">P2</span>
+            <span class="gap-tag">MORE</span>
+            <span class="gap-tag">Rep: Low</span>
+        </div>
+        <div class="gap-desc">V-NO-VOICE text-only video — scale &#x27;Future You&#x27; format ($77K WIN, 95.7% conc)</div>
+        <div class="gap-evidence">Recent test: conclusive WIN. Lifetime: $51.6M V-NO-VOICE (72.5%). Format-distinctive.</div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-9</span>
+            <span class="gap-priority priority-p2">P2</span>
+            <span class="gap-tag">NEW</span>
+            <span class="gap-tag">Rep: Medium</span>
+        </div>
+        <div class="gap-desc">Portion myth / &#x27;deceptively filling&#x27; objection flip</div>
+        <div class="gap-evidence">Consumer research: specific proof point. Competitor: zero. B&amp;L: can&#x27;t say &#x27;portion-controlled.&#x27;</div>
+    </div>
+
+    <div class="gap-card">
+        <div class="gap-header">
+            <span class="gap-id">CG-10</span>
+            <span class="gap-priority priority-p3">P3</span>
+            <span class="gap-tag">MORE</span>
+            <span class="gap-tag">Rep: High</span>
+        </div>
+        <div class="gap-desc">Energy transformation — monitor $40K directional HIT</div>
+        <div class="gap-evidence">Single directional test. HIT not WIN. Promote to P2 if scaled past $100K.</div>
+    </div>
+
+    <h3 style="font-size:0.95rem;margin:28px 0 16px;color:var(--accent)">Media Gaps</h3>
+    <div class="table-wrap"><table>
+    <tr><th>#</th><th>Gap</th><th>Severity</th><th>Owner</th><th>Notes</th></tr>
+    <tr><td>MG-1</td><td>TS creative can't get spend in scaling campaign</td><td><strong style="color:var(--danger)">Critical</strong></td><td>Media Team</td><td>May be page-history-related. Whitelisting (MG-3) may resolve by giving TS ads fresh Entity IDs.</td></tr>
+    <tr><td>MG-2</td><td>Influencer/Sakara ads distort benchmarking</td><td><strong style="color:var(--warn)">High</strong></td><td>Jeff/Todd</td><td>Must separate for accurate performance story.</td></tr>
+    <tr><td>MG-3</td><td>Activate whitelisting — 3 talents being locked in</td><td><strong style="color:var(--danger)">Critical</strong></td><td>Media + Creative</td><td>Single largest media lever. Get first ads live within 2 weeks. Lifetime: $17.6M whitelist spend proven.</td></tr>
+    <tr><td>MG-4</td><td>Testing velocity below 7/week target (~3/week)</td><td><strong style="color:var(--hit)">Medium</strong></td><td>Internal Ops</td><td>Downstream of WG-1 and WG-2.</td></tr>
+    </table></div>
+
+    <h3 style="font-size:0.95rem;margin:28px 0 16px;color:var(--accent)">Workflow Gaps</h3>
+    <div class="table-wrap"><table>
+    <tr><th>#</th><th>Gap</th><th>Severity</th><th>Owner</th><th>Blocked Upside</th></tr>
+    <tr><td>WG-1</td><td>Meredith Thursday-only review — 7-14 day delay</td><td><strong style="color:var(--danger)">Critical</strong></td><td>Client (Tommy)</td><td>Each rejection burns a week. Whitelist may create parallel approval path.</td></tr>
+    <tr><td>WG-2</td><td>Editing capacity bottleneck</td><td><strong style="color:var(--warn)">High</strong></td><td>Internal</td><td>Binding constraint on how many P1 gaps TS can attack. Max 2 gaps per sprint at current velocity.</td></tr>
+    <tr><td>WG-3</td><td>Statics ban — permanent constraint</td><td><strong style="color:var(--warn)">High</strong></td><td>N/A</td><td>$623K BoF + $50.7M lifetime off-limits. Confirm carousel status.</td></tr>
+    <tr><td>WG-4</td><td>Client adapting TS creative</td><td><strong style="color:var(--hit)">Medium</strong></td><td>Leadership</td><td>Every P1 gap has Low replicability by design.</td></tr>
+    <tr><td>WG-5</td><td>M1 iterations need visual refresh</td><td><strong style="color:var(--hit)">Medium</strong></td><td>Creative Ops</td><td>Increases production cost per iteration.</td></tr>
+    <tr><td>WG-6</td><td>Reporting must exclude influencer/Sakara</td><td><strong style="color:var(--hit)">Medium</strong></td><td>Jeff/Todd</td><td>Distorted benchmarking is a political liability.</td></tr>
+    </table></div>
+</div>
+</div>
+
+
+<div class="page-section" id="page-adlib">
+<div class="output-section">
+    <div class="output-label">Reference</div>
+    <div class="output-title">Ad Library</div>
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="showTab('adlib-l30',this)">L30 Active Ads (16)</button>
+        <button class="tab-btn" onclick="showTab('adlib-lifetime',this)">Lifetime Top 30</button>
+    </div>
+    <div class="tab-content active" id="tab-adlib-l30">
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px"><em>Ads launched Oct 2025+ from lifetime dataset — the ads driving current L30 performance.</em></p>
+        <div class="ad-grid"><div class="ad-card"><div class="ad-rank">#1</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1185491333130996.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_Peak-II-New-Retargeting_V1_0_0_27-8PD</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$2,844,136</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#2</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/25166412416385147.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_30_rrayyme_REMIFA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,551,633</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#3</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/1409766000768579.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_40_michaelh_MICHA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,157,384</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#4</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1197416421814965.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_C47-RTG-H3_V1_0_0_3E-3LXZB_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$889,540</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#5</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6945439157005.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_C2-H4_V1_30_HannahKaufman_10-NJ9P</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$807,458</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#6</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_1181639560834095.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_C23_V1_13_0_O1-KCF1R_Meta-4x5_0_N</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$798,429</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#7</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1560232191964942.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_BAU-Retargeting_V1_0_0_2D-I6HXF_Meta-</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$745,499</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#8</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_832283942846225.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_UF-C1_V1_33_0_0N-YLPYA_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$597,637</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#9</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/831936019709276.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_30_yovana_YOVANAF</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$582,808</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#10</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/1164828469179513.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_AGE-TS_BAU_WeigthLoss_V1A_30_0_BE-RJ69V_M</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$556,434</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#11</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_1592038872115423.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID_PS_XUS_BAU_C16-H1_V1_24_0_L1-YMXJP_Meta-4x5_0_NA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$499,348</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#12</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_899983392366254.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG-UGC_PS_XUS_BAU_C29-H4_V1_0_0_IV-X8XG2_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$478,883</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#13</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/6935788699005.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_C2-H1_V1_0_0_X2-6O4YR_Meta-4x5_0_NABR</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$421,453</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#14</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6935789618405.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID_PS_XUS_BAU_C55-H4_V1_22_0_IU-V5288_Meta-4x5_0_NA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$420,595</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#15</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_867880259059514.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID_PS_XUS_BAU_C55-H3_V1_22_0_J6-GRPS0_Meta-4x5_0_NA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$398,708</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#16</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_1258497959650091.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID_PS_XUS_BAU_C1-RTG_V1_32_0_3W-MH4WT_Meta-4x5_0_NA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$380,634</b></span></div></div></div></div>
+    </div>
+    <div class="tab-content" id="tab-adlib-lifetime">
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px"><em>All-time top 30 by total spend (~March 2023 – April 2026).</em></p>
+        <div class="ad-grid"><div class="ad-card"><div class="ad-rank">#1</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6636985045005.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_STUDIO_FA_NA_FB_NA_INTERNAL_XPOD_BentoInTheSky_S</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$4,203,654</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#2</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1185491333130996.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_Peak-II-New-Retargeting_V1_0_0_27-8PD</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$2,844,136</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#3</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6636985044405.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_STUDIO_FA_NA_FB_INTERNAL_XPOD_Cal_Studio_1_Calor</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$2,309,455</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#4</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6358656153805.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_4x5_NA_CLIENT_Joseph_Hakim_WL_IMG_2516</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,629,317</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#5</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/25166412416385147.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_30_rrayyme_REMIFA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,551,633</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#6</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6593653157205.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_STUDIO_FA_NA_FB_NA_INTERNAL_XPOD_Cal_Studio_2_Ca</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,447,089</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#7</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6636877079405.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FJ_NA_FB_NA_NA_NA_Peak_RTG-BAU_Steak_55Off</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,432,744</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#8</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6859002386805.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_IN_0_NABRAND-29179_Peak-II-New-Retargeting_V1</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,391,780</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#9</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6592345654405.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_STUDIO_FA_NA_FB_NA_INTERNAL_XPOD_Cal_Studio_2_Ca</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,308,457</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#10</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6532073764605.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_1x1_NA_CLIENT_FWS4L_FreeWellness_V4</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,198,380</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#11</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6636854450205.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FJ_NA_FB_NA_NA_NA_Peak_RTG-BAU_Salmon_55Off</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,163,712</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#12</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6645082755005.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Video_XPOD_FJ_XP146-15_50OFF_BAU_Combo_1x1_V1</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,158,775</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#13</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/1409766000768579.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-INF_IN_IN-INFL_BAU_INFL-BAU_V1_40_michaelh_MICHA</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,157,384</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#14</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6636985044605.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Video_STUDIO_FA_NA_FB_NA_INTERNAL_XPOD_LoseWeightWithou</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,140,089</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#15</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6485821093605.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_4x5_NA_CLIENT_Joseph_Hakim_WL_IMG_2516</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,086,619</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#16</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6531135616205.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_4x5_NA_CLIENT_Joseph_Hakim_WL_IMG_2516</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$1,034,809</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#17</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6792412206805.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_BKFSTvsBAU_V2_0_0_0W-MXKQ6_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$989,833</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#18</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6535823296205.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_1x1_NA_CLIENT_FWS4L_FreeWellness_V4</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$938,909</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#19</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6577456905605.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_STUDIO_FA_NA_FB_NA_INTERNAL_XPOD_WeightManagemen</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$925,835</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#20</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6503444842205.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_1x1_NA_SVL_Weight-Management-6A-V2</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$898,416</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#21</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1197416421814965.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_C47-RTG-H3_V1_0_0_3E-3LXZB_Meta-4x5_0</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$889,540</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#22</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6636985044205.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Video_FA_NA_FB_1x1_NA_CLIENT_Xpod_XP-8_C1_Offer_Video2_</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$851,144</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#23</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6636876998605.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FJ_NA_FB_NA_NA_NA_Peak_RTG-BAU_Salmon_55Off</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$848,733</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#24</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6636978974405.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Video_UGC_FA_NA_FB_NA_NRTV_FridgeRestockASMR_C_FCT974.2</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$834,078</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#25</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/a_6495550422605.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Static_FA_NA_FB_1x1_NA_SVL_cheaper-than-takeout-V1</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$824,075</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#26</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6668687421405.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Video_FJ_NA_FB_NA_NA_XPOD_XP-162_MultiMeal-6s_Dips_50Of</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$816,696</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#27</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/a_6945439157005.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_C2-H4_V1_30_HannahKaufman_10-NJ9P</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$807,458</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#28</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://datateam-ts-assets.s3.amazonaws.com/video_history/10151421846517319/c_1181639560834095.mp4" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">FJ_VID-UGC_PS_XUS_BAU_C23_V1_13_0_O1-KCF1R_Meta-4x5_0_N</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$798,429</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#29</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/748678156747553/a_120216572799350385.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">cf_meta_nrtv963.20_static_fca_Sticky_Notebox_Eng_202409</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$752,916</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#30</div><div class="ad-media"><img src="https://datateam-ts-assets.s3.amazonaws.com/image_history/10151421846517319/c_1560232191964942.jpg" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">FJ_IMG_PS_XUS_BAU_BAU-Retargeting_V1_0_0_2D-I6HXF_Meta-</div><span class="ad-rating win">WIN</span> <div class="ad-metrics"><span class="metric"><b>$745,499</b></span></div></div></div></div>
+    </div>
+</div></div>
+
+<div class="page-section" id="page-competitors">
+<div class="output-section">
+    <div class="output-label">Competitive Intelligence</div>
+    <div class="output-title">Competitor Landscape</div>
+
+    <div class="collapse-section open"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Factor vs. Competitors <span class="badge badge-high">COMPARISON</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content">
+        <div class="table-wrap"><table>
+        <tr><th></th><th style="background:rgba(94,234,212,0.12);border-bottom:2px solid var(--accent)">Factor</th><th>Hungryroot</th><th>CookUnity</th><th>Trifecta</th><th>Tempo</th></tr>
+        <tr><td><strong>Price/Meal</strong></td><td style="color:var(--accent)!important"><strong>$11.49–$13.99</strong></td><td>$9.99–$12.99</td><td>$10.39–$13.59</td><td>$11–$17</td><td>~$4.40</td></tr>
+        <tr><td><strong>Format</strong></td><td>Pre-made, heat & eat</td><td>Groceries + recipes + ready-made</td><td>Chef-prepared meals</td><td>Pre-made, organic</td><td>Pre-made (Home Chef)</td></tr>
+        <tr><td><strong>Menu Size</strong></td><td><strong>100+ weekly</strong></td><td>Varies (grocery hybrid)</td><td>300+ (100+ chefs)</td><td>~50 weekly</td><td>~30 weekly</td></tr>
+        <tr><td><strong>Protein Focus</strong></td><td><strong>Up to 50g/meal</strong></td><td>Not emphasized</td><td>Not emphasized</td><td>52g avg</td><td>Moderate</td></tr>
+        <tr><td><strong>GLP-1 Plan</strong></td><td style="color:var(--win)!important"><strong>✓ GLP-1 Balance</strong></td><td style="color:#4b5563!important">✗</td><td style="color:#4b5563!important">✗</td><td style="color:#4b5563!important">✗</td><td style="color:#4b5563!important">✗</td></tr>
+        <tr><td><strong>Fresh vs Frozen</strong></td><td style="color:var(--win)!important"><strong>Fresh, never frozen</strong></td><td>Fresh groceries</td><td>Fresh</td><td>Fresh + frozen</td><td>Fresh</td></tr>
+        <tr><td><strong>Est. Ad Spend (L30)</strong></td><td>$5.3M / $613K visible</td><td><strong>$1.37M</strong></td><td>$1.07M</td><td>Minimal</td><td>$63K</td></tr>
+        <tr><td><strong>Dominant Format</strong></td><td>UGC Testimonial (72%)</td><td>UGC Testimonial (38%)</td><td>Hybrid Product (55%)</td><td>N/A</td><td>UGC Testimonial (45%)</td></tr>
+        <tr><td><strong>Dominant Voice</strong></td><td>UGC Peer (45%)</td><td>UGC Testimonial (69%)</td><td>Narrator (63%)</td><td>N/A</td><td>Mixed</td></tr>
+        <tr><td><strong>Dominant Motivator</strong></td><td>Outcome (54%)</td><td>Outcome (55%)</td><td>Problem (56%)</td><td>N/A</td><td>Outcome (45%)</td></tr>
+        <tr><td><strong>Key Differentiator</strong></td><td>Fitness/protein + clinical claims</td><td>Personalization quiz</td><td>Chef authority + retargeting</td><td>Performance niche</td><td>Niche demographic targeting</td></tr>
+        </table></div>
+        
+        <h4 style="margin-top:20px">Motivator White Space</h4>
+        <div class="table-wrap"><table>
+        <tr><th>Motivator</th><th style="background:rgba(94,234,212,0.12)">Factor</th><th>CookUnity</th><th>Trifecta</th><th>Fresh n' Lean</th></tr>
+        <tr><td>"Cooking for one isn't worth it"</td><td style="color:var(--danger)!important"><strong>NONE</strong></td><td>None</td><td>None</td><td>None</td></tr>
+        <tr><td>"I physically can't cook right now"</td><td style="color:var(--danger)!important"><strong>NONE</strong></td><td>None</td><td>None</td><td>None</td></tr>
+        <tr><td>"GLP-1 appetite confusion"</td><td style="color:var(--danger)!important"><strong>NONE</strong></td><td>None</td><td>None</td><td>None</td></tr>
+        <tr><td>"DoorDash draining my bank"</td><td style="color:var(--warn)!important">Light</td><td>None</td><td>None</td><td>None</td></tr>
+        <tr><td>"Meal prep eating weekends"</td><td style="color:var(--hit)!important">Moderate</td><td>None</td><td>Heavy</td><td>None</td></tr>
+        <tr><td>"Too tired to cook"</td><td style="color:var(--win)!important">Heavy</td><td>Moderate</td><td>Light</td><td>Moderate</td></tr>
+        <tr><td>"Hit protein goals"</td><td style="color:var(--hit)!important">Moderate</td><td>None</td><td>Heavy</td><td>Light</td></tr>
+        <tr><td>"vs. frozen dinners"</td><td style="color:var(--warn)!important">Light</td><td>Moderate</td><td>None</td><td>None</td></tr>
+        </table></div>
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-top:8px"><em>Red = zero creative despite consumer validation. These are the category's biggest white spaces.</em></p>
+    </div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Hungryroot <span class="badge badge-moderate">Est. $1.37M · Top 10 Ads</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h4>Creative Strategy Summary</h4>
+        <p><strong>Top ad:</strong> Street interview ($355K) — passerby asked about dinner frustration, introduced to Hungryroot quiz. Highest-spend single mechanism in competitor pulls.</p>
+        <p><strong>Visual:</strong> UGC Testimonial (38%) + Product Demo (33%). Real people in kitchens and street footage. No polished studio.</p>
+        <p><strong>Messaging:</strong> Outcome-led (55%) with personalization framing — "tailored to you," "personal shopper." Only 6% deal — lowest deal-dependency of any competitor.</p>
+        <p><strong>Voice:</strong> UGC Testimonial dominant (69%). Builds credibility through quantity of social proof.</p>
+        <p><strong>What to adapt:</strong> Street interview format ($355K). Recipe-as-proof demo ($187K). "America's most loved" social proof ($187K).</p>
+        <h4>Top Ads</h4>
+        <div class="ad-grid"><div class="ad-card"><div class="ad-rank">#1</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/6d4b8bdc5fe6a9af/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">“My doctor said that whatever I’m doing with Hungryroot</div><div class="ad-metrics"><span class="metric"><b>$355,238</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#2</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/7c3818416345150d/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Why is Hungryroot America&#x27;s most loved food delivery se</div><div class="ad-metrics"><span class="metric"><b>$186,503</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#3</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/89487049b642e495/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">They use your unique preferences to create a weekly pla</div><div class="ad-metrics"><span class="metric"><b>$79,244</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#4</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/cfbb7586dce24793/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">“My cholesterol is 1/3 of what it was, I have lost 20 l</div><div class="ad-metrics"><span class="metric"><b>$76,938</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#5</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/2bd8c4bebc6be821/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">I haven&#x27;t been to the grocery store in months because t</div><div class="ad-metrics"><span class="metric"><b>$59,462</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#6</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/463e4aca897d4ebf/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Why is Hungryroot America&#x27;s most loved food delivery se</div><div class="ad-metrics"><span class="metric"><b>$45,273</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#7</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/2ad2d1eae11f71ee/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">&quot;Knocked my socks off with how easy, quick, and healthy</div><div class="ad-metrics"><span class="metric"><b>$39,681</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#8</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/67cd7bba60e6b7d5/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">You can thank @jennaliveswell for your new hyper-fixati</div><div class="ad-metrics"><span class="metric"><b>$35,639</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#9</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/7329aa101766cc27/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Hungry Root makes sticking to my anti-inflammatory diet</div><div class="ad-metrics"><span class="metric"><b>$30,975</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#10</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/04d0fe9af7ded1ac/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Anyone else in a dinner rut? Comment HUNGRY (does not n</div><div class="ad-metrics"><span class="metric"><b>$29,091</b></span></div></div></div></div>
+    </div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>CookUnity <span class="badge badge-moderate">Est. $1.07M · Top 10 Ads</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h4>Creative Strategy Summary</h4>
+        <p><strong>Top ad:</strong> "The insider secret professionals are using to eat 5-star meals every night" ($169K) — curiosity-gap with narrator-driven chef showcase.</p>
+        <p><strong>Visual:</strong> Hybrid Product Feature (55.5%). Dark backgrounds, gourmet plating. Restaurant-quality positioning.</p>
+        <p><strong>Messaging:</strong> Problem-led (56%) — "cooking is exhausting." Heavy discount (92% carries a discount). Aggressive retargeting: "Time is ticking!" ($302K) — spending more on winning back lapsed users than acquiring new ones. A churn signal.</p>
+        <p><strong>Voice:</strong> Narrator dominant (63%). Professional voiceover reinforces premium but limits authenticity.</p>
+        <p><strong>What to adapt:</strong> Chef authority ($363K combined). Cost comparison street interview ($90K) — adapt from "groceries" to "DoorDash" for Factor. Curiosity-gap hook structure ($169K).</p>
+        <h4>Top Ads</h4>
+        <div class="ad-grid"><div class="ad-card"><div class="ad-rank">#1</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/219fcdd3c55ad967/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Skip the grocery store, prep and dishes. Get meals from</div><div class="ad-metrics"><span class="metric"><b>$168,808</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#2</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/2477904709484796703.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Time is ticking! Return to CookUnity and get up to 50% </div><div class="ad-metrics"><span class="metric"><b>$116,785</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#3</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/0b1fe7974bc3aaa1/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Skip the grocery store, prep and dishes. Get meals from</div><div class="ad-metrics"><span class="metric"><b>$110,659</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#4</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/6e4a5d46bcca2ff6/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">The people order delivery like they&#x27;re made of money.  </div><div class="ad-metrics"><span class="metric"><b>$107,203</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#5</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/547eb3290ec658b0/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Tired of grocery shopping, meal prep and dishes? Say go</div><div class="ad-metrics"><span class="metric"><b>$106,751</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#6</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/-3884718810583366275.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Time is ticking! Return to CookUnity and get up to 50% </div><div class="ad-metrics"><span class="metric"><b>$99,410</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#7</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/45995098b674d03d/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">The people miss Lorenzo from vacation.  That&#x27;s why the </div><div class="ad-metrics"><span class="metric"><b>$90,523</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#8</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/7bf3b7b2937bfd4b/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">You enjoy cooking?  No, but I do it.  And if I told you</div><div class="ad-metrics"><span class="metric"><b>$90,034</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#9</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/ef9960f040b3d685/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Can I ask you a question?  Sure thing.  How much do you</div><div class="ad-metrics"><span class="metric"><b>$89,847</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#10</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/2869e3652ba32ce3/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">I hate that I can&#x27;t keep this a secret.  I canceled all</div><div class="ad-metrics"><span class="metric"><b>$86,753</b></span></div></div></div></div>
+    </div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Tempo Meals <span class="badge badge-moderate">Est. $63K · Low Spend</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h4>Creative Strategy Summary</h4>
+        <p><strong>Approach:</strong> Niche-persona targeting at low spend — military, gamers, nurses/teachers, office workers. Each persona gets identity-specific hooks.</p>
+        <p><strong>Top ad:</strong> Couple's testimonial comparing Tempo to Home Chef ($21K) — "next step" for meal-kit users wanting more convenience.</p>
+        <p><strong>Intelligence value:</strong> Conceptually interesting but no ad validated at scale ($63K total). Ideation fuel, not competitor-validated strategy.</p>
+        <h4>Top Ads</h4>
+        <div class="ad-grid"><div class="ad-card"><div class="ad-rank">#1</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/dce71a2e5671f97a/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">We’ve been doing Home Chef for years, and now that our </div><div class="ad-metrics"><span class="metric"><b>$21,398</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#2</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/4ec7a8d04daaaeed/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">THIS is a game-changer  Tempo by Home Chef delivers ful</div><div class="ad-metrics"><span class="metric"><b>$9,191</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#3</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/-58969659165100618.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">THIS is a game-changer  Tempo by Home Chef delivers ful</div><div class="ad-metrics"><span class="metric"><b>$7,899</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#4</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/-628641065413183201.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Say goodbye to fast food and the vending machine. Stock</div><div class="ad-metrics"><span class="metric"><b>$5,956</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#5</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/503ce3b901268694/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">Getting Tempo meals delivered fresh to my front door me</div><div class="ad-metrics"><span class="metric"><b>$4,433</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#6</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/6333048625229015251.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Yes. THIS deal is once in a lifetime, literally. If you</div><div class="ad-metrics"><span class="metric"><b>$4,041</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#7</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/902df7e82a1209ca/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">When I need quick delicious meals. During the week, I o</div><div class="ad-metrics"><span class="metric"><b>$2,752</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#8</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/-7653213402697803345.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">First responders, could you use some extra time back in</div><div class="ad-metrics"><span class="metric"><b>$2,667</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#9</div><div class="ad-media"><img src="https://s3.amazonaws.com/YM_Ads/-203845468711522846.png" loading="lazy" onerror="this.parentElement.innerHTML='<div class=media-error>Unavailable</div>'"></div><div class="ad-info"><div class="ad-name">Military members, get a lifetime discount on Tempo! Get</div><div class="ad-metrics"><span class="metric"><b>$2,634</b></span></div></div></div>
+<div class="ad-card"><div class="ad-rank">#10</div><div class="ad-media"><video controls preload="none" playsinline><source src="https://x-ad-assets.s3.amazonaws.com/media_asset/e2577a73372d45a5/media" type="video/mp4"></video></div><div class="ad-info"><div class="ad-name">When I&#x27;m hangry, I reach for Tempo&#x27;s chef-crafted meals</div><div class="ad-metrics"><span class="metric"><b>$2,510</b></span></div></div></div></div>
+    </div></div></div>
+
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Category White Space <span class="badge badge-p1">HIGH OPPORTUNITY</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h4>Nobody in the category is doing these:</h4>
+        <p><strong>1. Emotional use-case creative</strong> — Depression, grief, disability, life transitions. Consumer research #1. Zero paid creative from anyone.</p>
+        <p><strong>2. Anti-DoorDash framing</strong> — Delivery app spending is the "villain" in consumer stories. Nobody names this enemy explicitly.</p>
+        <p><strong>3. Subscription barrier-busting</strong> — 4,400+ BBB complaints. Nobody addresses subscription anxiety.</p>
+        <p><strong>4. Portion-size objection handling</strong> — "Deceptively filling" is consumer-validated. Zero ads.</p>
+        <p><strong>5. Menu variety as primary hook</strong> — 100+ options buried in body copy, never the lead.</p>
+        <p><strong>6. GLP-1 targeting</strong> — Factor has the product. No competitor targets Ozempic/Wegovy users.</p>
+        <p><strong>7. Elderly/senior targeting</strong> — Strong review evidence. Zero paid creative from anyone.</p>
+    </div></div></div>
+</div></div>
+
+<div class="page-section" id="page-research">
+<div class="output-section">
+    <div class="output-label">Source Document</div>
+    <div class="output-title">Consumer Intelligence Report</div>
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Full Consumer Research <span class="badge badge-new">SOURCE</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h3 style="margin:24px 0 12px;font-size:1.1rem">Factor Meals — Consumer Intelligence Report for Direct-Response Creative Strategy</h3>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>1. Product Overview &amp; Bucketing</h4>
+<p>Factor is a fresh (never frozen), pre-made meal delivery subscription owned by HelloFresh (acquired November 2020 for up to $277M). Meals arrive refrigerated weekly and are ready to eat in 2-3 minutes via microwave or oven. Subscription tiers run from 6 meals/week ($13.99/meal) to 18 meals/week ($11.49/meal), plus $10.99 flat shipping. The menu rotates weekly with 100+ options across dietary categories: Keto, Calorie Smart, Protein Plus, Vegan + Veggie, Chef's Choice, Flexitarian, GLP-1 Balance, Fiber Filled, Low Carb, and Mediterranean. Add-ons include breakfasts, snacks, smoothies, juices, and a supplements line (Factor Form). Recent expansion into Target retail (70+ Midwest stores, January 2026), campus Smart Fridges (Dartmouth), and co-branded products (Sakara salads) signals aggressive channel diversification beyond DTC.</p>
+<p><strong>Differentiation level: Moderate.</strong> Factor's core claims (fresh, chef-crafted, dietitian-approved, ready in 2 min) are not unique on paper — CookUnity, Trifecta, and Fresh n' Lean make similar claims. However, the 2022-2023 competitive die-off (Freshly shut down DTC, RealEats collapsed, Snap Kitchen retreated to Texas retail) left Factor as the dominant default in pre-made meal delivery. The differentiation is operational and scale-based (48-state coverage, HelloFresh logistics, 100+ weekly options), not product-level.</p>
+<p><strong>Functionality:</strong> Consumer selects meals weekly from a rotating menu. Box arrives refrigerated with ice packs. Consumer heats individual meals in microwave (2 min) or oven (10-15 min). No prep, no cooking, no cleanup beyond disposing the tray.</p>
+<p><strong>Consideration level: Medium.</strong> Most buyers research 2-4 services, read reviews, and compare pricing before subscribing. The subscription commitment (with its cancellation-friction reputation) raises the bar. However, heavy introductory discounting (50% off first box) and influencer saturation lower the trial barrier — the real consideration gate is whether to continue past week 3-4 when full pricing kicks in.</p>
+<p><strong>Visual sellability: Strong.</strong> Food is inherently visual. Unboxing reveals restaurant-quality plating in trays. The speed demonstration (fridge → microwave → plate → eating in 30 seconds) is highly demonstrable. Taste reactions are strong proof assets.</p>
+<p><strong>Primary motivator profile hypothesis:</strong> Product bucketing points to a <strong>Problem Motivator-led</strong> strategy — the core problems being time poverty, unhealthy eating from takeout/fast food, and the guilt-frustration cycle of knowing you should eat better but lacking bandwidth to cook. Secondary Outcome Motivator opportunity around health goals (weight management, macros, eating cleaner). Deal Motivator necessary to overcome price barrier, anchored against delivery app spending ($20-25/meal) not grocery costs ($4/meal). Strong Anti-Competitor Motivator signal given the DoorDash/UberEats habit Factor directly replaces.</p>
+<p><strong>Recommended sales formula: PAS+</strong> — Factor solves an identifiable, acute, daily problem (the "what's for dinner" stress compounded by the expense-health tradeoff of takeout). The problem is felt daily, the solution immediately demonstrable, and the proof structure (taste test, cost comparison, speed demo) maps cleanly to PAS+. Secondary concepts can use <strong>AIDA+</strong> for competitive/undifferentiated positioning against alternatives.</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>2. Executive Summary</h4>
+<p><strong>The single biggest creative opportunity:</strong> Factor's most powerful consumer testimonials are emotional, not functional — people saved during depression, widows who stopped cooking, single parents stretched too thin. These generate the strongest organic sentiment in the review data but are completely absent from Factor's paid creative, which leans almost entirely on fitness/athlete/convenience positioning. An emotional use-case creative line would be net-new in the category.</p>
+<p><strong>The most dangerous blind spot:</strong> Every meal delivery brand leads with convenience and taste. These are table stakes, not differentiators. The real conversion barrier isn't "does this food taste good?" — it's "will I get trapped in a subscription I can't cancel?" Factor has 4,400+ BBB complaints predominantly about billing and cancellation friction. Any creative strategy that ignores this trust deficit is fighting with one hand behind its back.</p>
+<p><strong>The 2-3 consumer truths that should anchor first-round creative:</strong></p>
+<p>1. Factor's value argument only works when anchored against delivery app spending ($20-25/meal), not home cooking ($4/meal). Consumers who frame Factor as "cheaper than DoorDash" become long-term subscribers. Those who frame it as "more expensive than cooking" churn within a month. Creative must set the comparison frame before the viewer does it themselves.</p>
+<p>2. The portions look small but are "deceptively filling." Multiple reviewers independently describe expecting to be hungry and being surprised they weren't. This is both the #2 visual objection (from non-buyers looking at photos) and a reframable advantage. An ad that deliberately triggers and then resolves this objection builds massive credibility.</p>
+<p>3. Menu fatigue — not food quality — is the long-term churn trigger. Factor's food is genuinely good (positive reviews outnumber negative ~3:1). But "same flavors," "too much chicken," and "green beans with everything" are the slow-burn complaints that push 6-month subscribers to cancel. Creative emphasizing 100+ weekly options directly addresses the real retention killer.</p>
+<p><strong>Motivator hypothesis check:</strong> The Section 1 Problem Motivator-led hypothesis holds — consumer evidence overwhelmingly shows people buying Factor to escape a painful status quo (takeout guilt, no time to cook, unhealthy eating patterns). However, the Anti-Competitor Motivator signal is stronger than expected: the "villain" in most consumer stories isn't abstract time poverty — it's DoorDash/UberEats spending specifically. This makes Anti-Competitor creative (vs. delivery apps) a stronger first-round priority than originally hypothesized.</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>3. Surprise Factors (Hook Fuel)</h4>
+<h4 style="font-size:0.85rem">High TAM Surprises</h4>
+<p><strong>"The average DoorDash order costs $25+ after fees and tip. Factor meals are $11."</strong></p>
+<p>Why it's surprising: Most people have mentally categorized meal delivery services as "expensive" without doing the math against their actual delivery app spending. The fee/tip stack on DoorDash is invisible in the moment but devastating over a month.</p>
+<p>Hook direction: Credibility/disruption. Show real DoorDash receipts vs. Factor per-meal cost.</p>
+<p>Motivator fuel: Anti-Competitor → "DoorDash is draining my bank account"</p>
+<p><strong>"Factor portions look small in photos but users call them 'deceptively filling.'"</strong></p>
+<p>Why it's surprising: Every food photo on the internet is styled to look abundant. Factor trays look modest. Viewers assume they'll be hungry — and they're wrong. Attached review evidence: "Those 'small' portions? Deceptively filling. Seriously. I expected to be rummaging through the fridge after, but I was pretty full and satisfied."</p>
+<p>Hook direction: Curiosity/disruption. Deliberately show the "small-looking" tray, trigger the objection, then resolve it.</p>
+<p>Motivator fuel: Outcome Motivator → "Full without the guilt"</p>
+<p><strong>"~50% of meal delivery subscribers cancel within the first month. The ones who stay reframed what they're comparing it to."</strong></p>
+<p>Why it's surprising: The stat itself is jarring. The insight is that framing determines retention — same product, different comparison, completely different outcome.</p>
+<p>Hook direction: Curiosity. "The one mindset shift that makes meal delivery actually worth it."</p>
+<p>Motivator fuel: Deal Motivator → "Cheaper than my DoorDash habit"</p>
+<p><strong>"Factor meals are fresh, not frozen — and most people assume they're frozen dinners."</strong></p>
+<p>Why it's surprising: The entire prepared meal category carries a "frozen dinner" stigma. Factor's refrigerated format is a genuine quality differentiator that most prospects assume away. Attached review: "Way better than frozen store stuff." Web review: "These aren't the frozen dinners I grew up on."</p>
+<p>Hook direction: Disruption/credibility. Show the meal next to a Lean Cuisine and contrast.</p>
+<p>Motivator fuel: Anti-Competitor → "Frozen dinners are depressing"</p>
+<p><strong>"Freshly — the biggest Factor competitor, acquired by Nestlé for $950M — shut down. Factor is the last one standing."</strong></p>
+<p>Why it's surprising: Consumers don't track industry consolidation. Learning that most competitors died creates a "there must be a reason this one survived" inference.</p>
+<p>Hook direction: Credibility. "Every other meal delivery service shut down. Here's why this one didn't."</p>
+<p>Motivator fuel: Problem Motivator → "I've been burned by meal services before"</p>
+<h4 style="font-size:0.85rem">Niche Surprises</h4>
+<p><strong>"Factor has a dedicated GLP-1 meal plan for people on Ozempic/Wegovy."</strong></p>
+<p>Why it's surprising: GLP-1 users have specific, underserved needs — portion-controlled, nutrient-dense meals that work with appetite suppression. Most don't know a meal service exists for this.</p>
+<p>Hook direction: Benefit/curiosity. "If you're on Ozempic, you need to know about this."</p>
+<p>Motivator fuel: Problem Motivator → "GLP-1 changed my appetite and I don't know what to eat"</p>
+<p><strong>"Factor's Protein Plus meals deliver 30-40g protein — more than most fast-casual meals."</strong></p>
+<p>Why it's surprising: Gym-goers assume they need to cook chicken and rice to hit protein targets. Pre-made meals carrying 40g protein challenges the "meal prep is the only way" assumption.</p>
+<p>Hook direction: Credibility/benefit. Show macro breakdown vs. a Chipotle bowl.</p>
+<p>Motivator fuel: Outcome Motivator → "Hit my protein goals without meal prep"</p>
+<p><strong>"A 71-year-old reviewer: 'There's days I don't have it in me to cook so this really helps me out.'"</strong></p>
+<p>Why it's surprising: Factor is marketed exclusively to young professionals and fitness enthusiasts. The elderly living-alone use case is powerful, emotional, and completely unaddressed in current creative.</p>
+<p>Hook direction: Emotional/credibility. Testimonial-driven.</p>
+<p>Motivator fuel: Problem Motivator → "I physically can't cook right now"</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>4. Consumer Vocabulary Bank</h4>
+<h4 style="font-size:0.85rem">Problem Language</h4>
+<p>How consumers describe their pain before Factor:</p>
+<ul>
+<li>"Busy week had me trying Factor" — time crunch as purchase trigger (attached Trustpilot, 5★)</li>
+<li>"I drive a lot for work... I still need to eat with utensils" — on-the-go eating problem (attached Trustpilot, 3★)</li>
+<li>"Since I recently became a widow, I have not been cooking and eating the right kind of meals" (web review)</li>
+<li>"Factor has saved me from my reckless eating habits without interrupting my packed schedule" (Popdust review, attached)</li>
+<li>"I suck it up and cook at home" — framing cooking as a chore to endure (Reddit)</li>
+<li>"There's days I don't have it in me to cook" — energy/capacity barrier, not just time (attached Trustpilot, 5★)</li>
+<li>"I was eating out every day and spending a fortune" (inferred from multiple attached reviews)</li>
+<li>"High calorie, VERY high sodium. These meals may be convenient, but definitely not healthy AT ALL" — the health surprise when reading labels (Reddit)</li>
+</ul>
+<h4 style="font-size:0.85rem">Outcome Language</h4>
+<p>How consumers describe life after / the transformation:</p>
+<ul>
+<li>"Dinner is ready in 4 minutes, they taste good, and I don't get bored" (attached Trustpilot, 5★)</li>
+<li>"Getting great numbers at doctors" — measurable health outcome after 1+ year (attached Trustpilot, 5★)</li>
+<li>"I have a ready meal every day and always something different. A great thing for one person." (attached Trustpilot, 5★)</li>
+<li>"It takes the stress out of figuring out what to eat" (attached Trustpilot, 5★)</li>
+<li>"No prep, just nuke" (attached Trustpilot, 5★)</li>
+<li>"I don't have to pack a lunch for work" — specific daily win (attached Trustpilot, 5★)</li>
+<li>"We brag about it to everyone" (attached Trustpilot, 5★)</li>
+<li>"Just what I need to get a protein packed healthy meal" (attached Trustpilot, 5★)</li>
+</ul>
+<h4 style="font-size:0.85rem">Comparison Language</h4>
+<p>How consumers talk about Factor vs. alternatives:</p>
+<ul>
+<li>"Less expensive than going out or ordering from Uber Eats" (web review)</li>
+<li>"If I were single and didn't want to cook I would definitely do this. Less expensive than eating out and healthier than a frozen dinner" (web review)</li>
+<li>"These aren't the frozen dinners I grew up on" (web review)</li>
+<li>"Way better than frozen store stuff" (Revgear review, attached)</li>
+<li>"You have lots of competition and most are beating you on price" (attached Trustpilot, 4★)</li>
+<li>"I'm definitely thinking of switching to Tempo, theirs is only $4.40 a dinner" (attached Trustpilot, 4★)</li>
+<li>"Overall best of three food services I have tried" (attached Trustpilot, 5★)</li>
+<li>"Could I cook a meal for less than $13.49? Sure. But would it take me way more time, effort, and dishes? Also yes." (web review)</li>
+</ul>
+<h4 style="font-size:0.85rem">Objection Language</h4>
+<p>How consumers articulate doubts:</p>
+<ul>
+<li>"Expensive for quantity" (attached Trustpilot, 3★)</li>
+<li>"I won't be able to continue without discount. Still high with discount." (attached Trustpilot, 4★)</li>
+<li>"Signing up is a breeze, but canceling is a different story" (web review)</li>
+<li>"That's not a small mistake — that's completely ignoring a basic preference" — on incorrect orders (attached Trustpilot, 1★)</li>
+<li>"The delivery times are all over the place" (attached Trustpilot, 3★)</li>
+<li>"The food was at an unsafe temperature and had to be disposed" (attached Trustpilot, 1★)</li>
+<li>"I can't justify the cost for the taste" (attached Trustpilot, 4★)</li>
+<li>"Not sure if the plastic is safe" — microwave safety concern (attached Trustpilot, 3★)</li>
+</ul>
+<h4 style="font-size:0.85rem">Recommendation Language</h4>
+<p>How satisfied customers describe Factor to others:</p>
+<ul>
+<li>"I have actually recommended Factor to all my family and friends" (attached Trustpilot, 5★)</li>
+<li>"Take a few extra minutes and plate your food. This food deserves a plate and you will be amazed" (attached Trustpilot, 5★)</li>
+<li>"A solid pick for busy folks or athletes who hate cooking" (Revgear, attached)</li>
+<li>"I turned a friend of mine onto Factor and they have been buying your meals also" (attached Trustpilot, 5★)</li>
+<li>"For a single person who's just tired of cooking, not a bad option" (attached Trustpilot, 5★)</li>
+<li>"Plate-licking good" (attached Trustpilot, 5★)</li>
+<li>"Factor meals are so delicious and far better than any other prepared meals on the market. The food is actually restaurant quality" (attached Trustpilot, 5★)</li>
+<li>"One of the best pre-made meal delivery services available today" (Food Box HQ, attached)</li>
+</ul>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>5. Audience Map (Use Cases, Not Demographics)</h4>
+<h4 style="font-size:0.85rem">Audience 1: &quot;The DoorDash Guilty Spender&quot;</h4>
+<p><strong>Acute trigger:</strong> Realizes they're spending $500-800/month on delivery apps. Feels guilty about both the cost and the nutritional quality. The credit card statement is the wake-up call.</p>
+<p><strong>TAM signal:</strong> Extremely broad. DoorDash has 37M+ monthly active users. Factor's ideal conversion target is the subset spending $150+/week on delivery.</p>
+<p><strong>Currently addressed by competitors:</strong> Heavily targeted by all meal delivery services — but most creative focuses on "convenience" generically rather than naming delivery apps as the specific villain.</p>
+<p><strong>If/then:</strong> "If you're spending $20+ per meal on DoorDash three times a week, then Factor cuts that in half while actually being healthy."</p>
+<p><strong>Primary motivator alignment:</strong> Anti-Competitor → "DoorDash is draining my bank account" + Deal Motivator → "Cheaper than my DoorDash habit"</p>
+<h4 style="font-size:0.85rem">Audience 2: &quot;The Exhausted Solo Dweller&quot;</h4>
+<p><strong>Acute trigger:</strong> Living alone and the daily "what's for dinner" decision has become a source of stress or despair. Cooking for one feels pointless. May be recently divorced, widowed, relocated, or burned out.</p>
+<p><strong>TAM signal:</strong> Broad. 37M single-person households in the US.</p>
+<p><strong>Currently addressed by competitors:</strong> Poorly. Most meal delivery creative features couples, families, or fitness-focused individuals. The solo-living emotional need is present in reviews but absent from advertising.</p>
+<p><strong>If/then:</strong> "If you live alone and cooking feels like more trouble than it's worth, then Factor gives you a real meal every night without the effort."</p>
+<p><strong>Primary motivator alignment:</strong> Problem Motivator → "Cooking for one isn't worth it" + Outcome Motivator → "Actually eating real meals again"</p>
+<p><strong>FLAG — UNTAPPED:</strong> Generates the most emotionally powerful testimonials in the review dataset but receives zero dedicated creative.</p>
+<h4 style="font-size:0.85rem">Audience 3: &quot;The Fitness-Focused Macro Tracker&quot;</h4>
+<p><strong>Acute trigger:</strong> Pursuing a body composition or athletic goal. Needs 30-40g protein/meal and predictable macros. Sunday meal prep has become a chore.</p>
+<p><strong>TAM signal:</strong> Broad enough — 66M+ US gym memberships. The macro-tracking subset (MyFitnessPal 200M+ downloads) is sizable and highly targetable.</p>
+<p><strong>Currently addressed by competitors:</strong> Heavily. Trifecta owns the performance athlete niche. Factor competes with Protein Plus meals and a taste advantage.</p>
+<p><strong>If/then:</strong> "If you're tired of cooking chicken and rice every Sunday to hit your macros, then Factor's Protein Plus meals deliver 30-40g protein ready in 2 minutes."</p>
+<p><strong>Primary motivator alignment:</strong> Problem Motivator → "Meal prep is eating my weekends" + Outcome Motivator → "Hit my protein goals without meal prep"</p>
+<h4 style="font-size:0.85rem">Audience 4: &quot;The GLP-1 Medication User&quot;</h4>
+<p><strong>Acute trigger:</strong> Started Ozempic, Wegovy, or Mounjaro. Appetite changed dramatically. Needs smaller, nutrient-dense, balanced meals but doesn't know what to eat. Doctor says "eat more protein" but provides no meal plan.</p>
+<p><strong>TAM signal:</strong> Growing fast — 6M+ Americans currently on GLP-1 medications, projected 30M+ by 2030.</p>
+<p><strong>Currently addressed by competitors:</strong> Very poorly. Factor has a GLP-1 Balance menu tier but minimal advertising. No competitor has significant GLP-1-specific creative in market.</p>
+<p><strong>If/then:</strong> "If you're on a GLP-1 medication and your appetite has completely changed, then Factor's GLP-1 Balance meals are portion-controlled and designed for exactly this."</p>
+<p><strong>Primary motivator alignment:</strong> Problem Motivator → "GLP-1 changed my appetite and I don't know what to eat"</p>
+<p><strong>FLAG — UNTAPPED:</strong> Factor built the product but hasn't built the creative. First-mover advertising opportunity in a rapidly expanding audience.</p>
+<h4 style="font-size:0.85rem">Audience 5: &quot;The Overwhelmed Caregiver / New Parent&quot;</h4>
+<p><strong>Acute trigger:</strong> Caring for children, aging parents, or recovering family members. Their own nutrition has become an afterthought. Eating cold leftovers standing at the counter or skipping meals entirely.</p>
+<p><strong>TAM signal:</strong> Moderate-to-broad. ~53M Americans serve as caregivers. 3.6M births/year.</p>
+<p><strong>Currently addressed by competitors:</strong> Somewhat for family meal kits, but Factor's single-serve format doesn't position for family cooking — the insight is the caregiver themselves needs feeding.</p>
+<p><strong>If/then:</strong> "If you're so busy feeding everyone else that you forgot to feed yourself, then Factor means you eat a real meal too."</p>
+<p><strong>Primary motivator alignment:</strong> Problem Motivator → "I physically can't cook right now" + Outcome Motivator → "Actually eating real meals again"</p>
+<h4 style="font-size:0.85rem">Audience 6: &quot;The Health-Conscious Retiree&quot;</h4>
+<p><strong>Acute trigger:</strong> Aging, reduced mobility or energy for cooking, possibly living alone. Wants to eat well but cooking is a burden. May have dietary restrictions (heart-healthy, low sodium).</p>
+<p><strong>TAM signal:</strong> Niche for paid social (harder to target on Meta) but significant volume — 56M Americans 65+.</p>
+<p><strong>Currently addressed by competitors:</strong> Very poorly. All major meal delivery brands skew their advertising young (25-44).</p>
+<p><strong>If/then:</strong> "If cooking has become harder than it used to be but you still want to eat well, then Factor delivers a hot, balanced meal ready in 2 minutes."</p>
+<p><strong>Primary motivator alignment:</strong> Problem Motivator → "I physically can't cook right now" + Outcome Motivator → "Actually eating real meals again"</p>
+<p><strong>FLAG — UNTAPPED:</strong> Review evidence (71-year-old reviewer, widow testimonial) confirms this audience exists and loves the product. Zero creative addresses them.</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>6. Motivator Taxonomy</h4>
+<p>*Decision tree applied per the classification rules: Step 1 (primary expression), Step 2 (anti-patterns avoided), Step 4 (spot check completed — three random Problem quotes re-read and confirmed as present-tense suffering, not outcome-led).*</p>
+<h4 style="font-size:0.85rem">Problem Motivators</h4>
+<p><strong>PM-1: "I eat like garbage because I'm too tired to cook"</strong></p>
+<p>Consumer evidence: "Busy week had me trying Factor and it made things easier" (attached, 5★). "Factor has saved me from my reckless eating habits without interrupting my packed schedule" (Popdust, attached). "I started ordering from here since it's convenient and less time spent in the kitchen after work" (attached, 4★).</p>
+<p>Emotional weight: Chronic — grinding daily guilt about food quality, punctuated by acute moments (staring at delivery app at 8pm knowing it's unhealthy and expensive).</p>
+<p>TAM signal: Extremely broad. This is the universal entry point for the category.</p>
+<p>Proof available: Testimonials, convenience demo (2-min heating), macro/nutritional labels, dietitian approval.</p>
+<p>Hook potential: Full ad carrier at ToF. Broadest Problem Motivator and safest entry point — but also the most saturated angle. Must pair with differentiating proof to stand out.</p>
+<p><strong>PM-2: "Cooking for one isn't worth it"</strong></p>
+<p>Consumer evidence: "A great thing for one person" (attached, 5★). "For a single person who's just tired of cooking, not a bad option" (attached, 5★). "Since I recently became a widow, I have not been cooking and eating the right kind of meals" (web review).</p>
+<p>Emotional weight: Chronic with acute triggers (divorce, relocation, loss of spouse).</p>
+<p>TAM signal: Moderate-broad. 37M single-person US households.</p>
+<p>Proof available: Testimonials from solo users, single-serve format, no-waste benefit.</p>
+<p>Hook potential: Full ad carrier for targeted creative. Particularly powerful paired with emotional testimonials. Underexploited.</p>
+<p><strong>PM-3: "Meal prep is eating my weekends"</strong></p>
+<p>Consumer evidence: "Forget spending hours meal prepping" (TikTok influencer hook). "I don't have to pack a lunch for work" (attached, 5★). Protein Plus meals at 30-40g protein specifically address the gym-goer meal prep burden.</p>
+<p>Emotional weight: Chronic — the Sunday meal prep ritual is weekly dread.</p>
+<p>TAM signal: Moderate. Fitness/gym audience is large but this pain is a subset.</p>
+<p>Proof available: Protein Plus macro breakdown, time comparison (3 hours prep vs. 2 minutes Factor).</p>
+<p>Hook potential: Full ad carrier for fitness creative. Strong MoF/BoF when macro proof is centerpiece.</p>
+<p><strong>PM-4: "I physically can't cook right now"</strong></p>
+<p>Consumer evidence: "There's days I don't have it in me to cook" (attached, 5★). "Since I recently became a widow, I have not been cooking" (web). Implied in post-surgery, new-baby, depression, and caregiver contexts throughout reviews.</p>
+<p>Emotional weight: Acute — crisis-level. This isn't laziness; it's genuine incapacity.</p>
+<p>TAM signal: Niche at any given moment but recurring across life stages.</p>
+<p>Proof available: Testimonials (extremely powerful and authentic), zero-effort format.</p>
+<p>Hook potential: Full ad carrier for emotional creative. The strongest single testimonial angle in the dataset. High conversion potential at lower spend.</p>
+<p><strong>PM-5: "GLP-1 changed my appetite and I don't know what to eat"</strong></p>
+<p>Consumer evidence: Factor launched a dedicated GLP-1 Balance menu tier. The broader GLP-1 conversation on Reddit and TikTok shows users actively searching for portion-controlled, protein-rich meals. Direct consumer quotes for Factor specifically are thin — this is a hypothesis supported by product-market fit rather than deep review evidence.</p>
+<p>Emotional weight: Acute — medication-driven life change with confusion and urgency.</p>
+<p>TAM signal: Growing fast (6M+ current users, 30M+ projected by 2030).</p>
+<p>Proof available: GLP-1 Balance menu, nutritional labels, dietitian approval.</p>
+<p>Hook potential: Full ad carrier for niche targeting. First-mover advantage since no competitor has GLP-1-specific creative.</p>
+<h4 style="font-size:0.85rem">Outcome Motivators</h4>
+<p><strong>OM-1: "Actually eating real meals again"</strong></p>
+<p>Consumer evidence: "These aren't the frozen dinners I grew up on" (web). "The food is actually restaurant quality" (attached, 5★). "I doubted the freshness but I was blown away" (Popdust, attached). "Meals taste very good. Very convenient" (attached, 5★).</p>
+<p>Emotional weight: Functional with identity-level undercurrent — "I'm someone who eats real food now."</p>
+<p>TAM signal: Very broad.</p>
+<p>Proof available: Taste-test reactions, visual presentation, "fresh never frozen," chef-crafted claims.</p>
+<p>Hook potential: Strong supporting beat at ToF. Less distinctive as a standalone because every food brand claims taste — but the "fresh not frozen" reframe gives it legs.</p>
+<p><strong>OM-2: "Hit my protein goals without meal prep"</strong></p>
+<p>Consumer evidence: "Just what I need to get a protein packed healthy meal" (attached, 5★). "Factor nails convenience and taste, especially the Protein Plus options that kept me full at 30-40 grams of protein" (Revgear, attached). "I am enjoying having ready to eat meals that are healthy and align with my nutritional goals" (attached, 5★).</p>
+<p>Emotional weight: Functional — macro targets are practical, not emotional.</p>
+<p>TAM signal: Moderate-broad among fitness audience.</p>
+<p>Proof available: Macro labels, Protein Plus line, dietitian approval.</p>
+<p>Hook potential: Full ad carrier when made specific ("40g protein in 2 minutes" is a hook; "healthy meals" is not).</p>
+<p><strong>OM-3: "Full without the guilt"</strong></p>
+<p>Consumer evidence: "Those 'small' portions? Deceptively filling" (web). "I love the meals; they have been delicious. The meals are just enough for me to be full on" (attached, 5★). "Getting great numbers at doctors" (attached, 5★). "Really enjoying the new lower fat, more healthy meals, they are just as delish" (attached, 5★).</p>
+<p>Emotional weight: Aspirational — eating well and feeling satisfied simultaneously.</p>
+<p>TAM signal: Broad — health-weight intersection.</p>
+<p>Proof available: Calorie Smart menu, portion satisfaction testimonials, doctor results quote.</p>
+<p>Hook potential: Full ad carrier, especially for the portion-myth reframe concept.</p>
+<p><strong>OM-4: "Dinner is handled — I don't have to think about it"</strong></p>
+<p>Consumer evidence: "Dinner is ready in 4 minutes, they taste good, and I don't get bored" (attached, 5★). "It takes the stress out of figuring out what to eat" (attached, 5★). "No prep, just nuke" (attached, 5★). "I love this program. Dinner is ready in 4 minutes" (attached, 5★). "One meal a day free of worry — quick and easy" (attached, 4★).</p>
+<p>Emotional weight: Functional — the relief of a daily decision being eliminated.</p>
+<p>TAM signal: Extremely broad.</p>
+<p>Proof available: Speed demo, weekly delivery consistency, menu rotation.</p>
+<p>Hook potential: Strong supporting beat. Works best when anchored against a Problem Motivator — the outcome is only powerful if you first feel the pain of the decision fatigue.</p>
+<h4 style="font-size:0.85rem">Deal Motivators</h4>
+<p><strong>Is this category price-sensitive enough for Deal Motivators to be significant?</strong> Yes — emphatically. Price is the #1 objection in the review data (23 attached reviews tagged "expensive for portion size," dominant theme in BBB complaints and Reddit). The intro-discount → full-price sticker shock is the most common churn trigger.</p>
+<p><strong>DM-1: "Cheaper than my DoorDash habit"</strong></p>
+<p>Consumer evidence: "Less expensive than going out or ordering from Uber Eats" (web). "Could I cook for less? Sure. But would it take me way more time?" (web). "If I were single and didn't want to cook... less expensive than eating out and healthier than a frozen dinner" (web).</p>
+<p>Price anchors: DoorDash/UberEats $20-25/meal (strongest anchor), fast casual $12-18/meal, home cooking ~$4.31/meal (worst anchor).</p>
+<p>Deal structures that resonate: 50% off first box is the primary conversion tool. "Free breakfast for a year" generates both response and confusion. Per-meal reframe ("less than $12/meal") resonates more than weekly totals. Money-back guarantee is conspicuously absent.</p>
+<p>Hook potential: Full ad carrier at BoF. The cost comparison is concrete and demonstrable.</p>
+<h4 style="font-size:0.85rem">Gift Motivators</h4>
+<p>Limited but present. One notable gift use case in attached data: "We bought a gift card for a single man raising his 7 year old daughter. He works all day, making it challenging to get good meals" (attached BBB, 2★ — good intention, bad execution due to delivery errors). Factor sells gift cards. Gifting aligns with holidays, surgery recovery, new baby, elderly parent care. Not enough volume for dedicated first-round creative but worth a seasonal test.</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>7. Anti-Competitor Motivators (Switch Triggers)</h4>
+<h4 style="font-size:0.85rem">AC-1: &quot;DoorDash is draining my bank account&quot;</h4>
+<p><strong>What they were using before:</strong> Ordering delivery 3-5x/week through DoorDash, UberEats, or Grubhub. Monthly spend: $400-800+.</p>
+<p><strong>The failure moment:</strong> Credit card statement shock. The fee/tip stack makes a $12 burrito cost $27. Over a month that's hundreds of dollars on food that's greasy, oversized, and making them feel terrible.</p>
+<p><strong>What made Factor the choice:</strong> Per-meal cost comparison ($12 vs. $25), pre-portioned sizes, nutritional transparency. The swap doesn't require willpower to cook — it replaces one convenience with a healthier, cheaper convenience.</p>
+<p><strong>Consumer evidence:</strong> "Less expensive than going out or ordering from Uber Eats" (web). "If I were single and didn't want to cook I would definitely do this. Less expensive than eating out and healthier than a frozen dinner" (web).</p>
+<h4 style="font-size:0.85rem">AC-2: &quot;Frozen dinners are depressing&quot;</h4>
+<p><strong>What they were using before:</strong> Lean Cuisine, Marie Callender's, Trader Joe's frozen section, Stouffer's. Cheap but nutritionally poor and psychologically deflating.</p>
+<p><strong>The failure moment:</strong> The accumulated sadness of eating freezer-burned tray meals. Bland flavor, inconsistent portions, zero culinary pleasure.</p>
+<p><strong>What made Factor the choice:</strong> Fresh (never frozen) is a genuine differentiator. The food looks and tastes meaningfully better.</p>
+<p><strong>Consumer evidence:</strong> "These aren't the frozen dinners I grew up on" (web). "Way better than frozen store stuff" (Revgear, attached). "I doubted the freshness but I was blown away" (Popdust, attached).</p>
+<h4 style="font-size:0.85rem">AC-3: &quot;Meal kits still require cooking&quot;</h4>
+<p><strong>What they were using before:</strong> HelloFresh, Blue Apron, Home Chef — meal kits requiring 30-45 minutes of actual cooking, producing dishes, and assuming energy to follow a recipe at 7pm.</p>
+<p><strong>The failure moment:</strong> The meal kit box sits in the fridge untouched because they got home too late or too tired. Ingredients go bad. They order DoorDash anyway. Now they've wasted both the kit money and the delivery money.</p>
+<p><strong>What made Factor the choice:</strong> Zero cooking, zero prep, zero dishes. The meal kit → pre-made upgrade eliminates the execution gap that causes kit churn.</p>
+<p><strong>Consumer evidence:</strong> "So glad I do not have to cook" (attached, 5★). "Quick and easy — just heat for 2 min" (attached, 4★). Note: Factor is owned by HelloFresh, creating an interesting dynamic where Factor catches HelloFresh's own churn.</p>
+<h4 style="font-size:0.85rem">AC-4: &quot;Other meal services failed or disappointed me&quot;</h4>
+<p><strong>What they were using before:</strong> Freshly (now dead), Trifecta (taste issues), or a previous Factor stint that didn't stick.</p>
+<p><strong>The failure moment:</strong> Service shut down, food quality was poor, or operations were unreliable.</p>
+<p><strong>What made Factor the choice:</strong> Survived the shakeout, improved under HelloFresh ownership, broadest menu in category.</p>
+<p><strong>Consumer evidence:</strong> "Overall best of three food services I have tried" (attached, 5★). "Since being acquired by HelloFresh, the meals and overall service have noticeably improved" (Food Box HQ, attached).</p>
+<h4 style="font-size:0.85rem">Indirect Competitor: &quot;Doing Nothing&quot;</h4>
+<p>Without Factor, the consumer's life looks like: nightly stare at the fridge or delivery app, cycling between takeout guilt and cooking avoidance, eating cereal or snacks for dinner, or skipping meals. When consumers cancel Factor, ~40% revert to increased takeout spending — confirming that the takeout habit is the true default state.</p>
+<h4 style="font-size:0.85rem">Switching Costs</h4>
+<p>No meaningful lock-in for competitors. However, Factor's own subscription friction (difficult cancellation, auto-renewal, Wednesday 11:59 PM CT cutoff) functions as artificial lock-in that generates resentment. This works against Factor in advertising because prospects have heard the horror stories.</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>8. Barriers to Purchase</h4>
+<h4 style="font-size:0.85rem">barrier_1: What will I get exactly?</h4>
+<p><strong>Consumer objection:</strong> "Meals look nothing like the photos." "Picture showed 8 shrimp, we got 4" (attached, 1★). "I hate that the pictured meals don't match the arriving meals" (attached, 3★). Confusion about format: "Are the meals to be thawed out or kept out of the freezer after we receive them?" (attached, 3★).</p>
+<p><strong>Severity:</strong> Speed bump.</p>
+<p><strong>Creative response:</strong> Demonstration. Unboxing video showing exactly what arrives. Real food vs. marketing photo comparison done honestly. Show the tray, show it heated, show it plated.</p>
+<p><strong>Proof assets:</strong> UGC unboxing content, taste-test reactions, "what I actually got" format.</p>
+<h4 style="font-size:0.85rem">barrier_2: How does it work?</h4>
+<p><strong>Consumer objection:</strong> Minor confusion about heating and food safety: "Meals need to be heated for 2 minutes or until temp reaches 165. This is very misleading. I heated two meals for over 4 minutes and temp never reached 165" (attached, 2★). "By the time you re-heat it, it's almost well done" (attached, 4★).</p>
+<p><strong>Severity:</strong> Minor concern.</p>
+<p><strong>Creative response:</strong> Education/demonstration. Quick visual showing proper microwave vs. oven heating.</p>
+<p><strong>Proof assets:</strong> Heating instruction visuals, oven-finish demo for premium cuts.</p>
+<h4 style="font-size:0.85rem">barrier_3: Why this over alternatives?</h4>
+<p><strong>Consumer objection:</strong> "You have lots of competition and most are beating you on price" (attached, 4★). "I'm thinking of switching to Tempo, theirs is only $4.40 a dinner" (attached, 4★). Implicit comparison to groceries: "Could I cook for less? Sure" (web).</p>
+<p><strong>Severity:</strong> Speed bump → dealbreaker depending on which comparison frame activates. If anchored against home cooking, Factor loses. If anchored against takeout, Factor wins.</p>
+<p><strong>Creative response:</strong> Price anchoring + comparison/reframe. Monthly math: Factor ($300-400/mo) vs. DoorDash ($500-800/mo). "You're already spending this much — just on worse food."</p>
+<p><strong>Proof assets:</strong> Cost comparison visuals, delivery app receipt contrasts, time-value calculation.</p>
+<h4 style="font-size:0.85rem">barrier_4: Is it right for me?</h4>
+<p><strong>Consumer objection:</strong> Dietary restrictions not well-served: "I don't eat seafood" (multiple attached). "I am allergic to cilantro" (attached, 2★). "Not enough low-carb options that are actually low-carb" (attached, 3★). "Way too much chicken" (recurring across 5+ attached reviews). "Very high in cholesterol and sodium" (attached, 3★). "Their tofu is horrible" (Reddit).</p>
+<p><strong>Severity:</strong> Speed bump for most, dealbreaker for severe allergies or strict diets.</p>
+<p><strong>Creative response:</strong> Education + social proof. Show the 100+ weekly options and dietary filtering system. Highlight specific categories (Keto, GLP-1, Protein Plus). Acknowledge the chicken-heavy criticism and show non-chicken variety.</p>
+<p><strong>Proof assets:</strong> Menu walkthrough, dietary filter demo, plan-specific testimonials.</p>
+<h4 style="font-size:0.85rem">barrier_5: How easy is it?</h4>
+<p><strong>Consumer objection:</strong> Mostly a non-issue — ease is Factor's strongest attribute. Minor friction: "The plastic coverings are difficult to remove — I often have to slice them off with a steak knife" (attached, 4★). "Website is not friendly so making changes to orders is almost impossible" (attached, 4★).</p>
+<p><strong>Severity:</strong> Minor concern.</p>
+<p><strong>Creative response:</strong> Demonstration. Full experience: box arrives → open → microwave 2 min → eat. Speed is the proof.</p>
+<p><strong>Proof assets:</strong> Speed demo content, "fridge to fork in 2 minutes."</p>
+<h4 style="font-size:0.85rem">barrier_6: Can I afford it?</h4>
+<p><strong>Consumer objection:</strong> THE dominant barrier. "Expensive for quantity" (attached, 3★). "Every week the price keeps going up" (attached, 4★). "I won't be able to continue without discount. Still high with discount" (attached, 4★). "Signed up for under $7 per meal. Immediately after, they hike the price to $11" (BBB). "A retiree on a fixed income" (attached, 4★).</p>
+<p><strong>Severity:</strong> Dealbreaker for ~30-40% of prospects. The single biggest conversion and retention barrier.</p>
+<p><strong>Creative response:</strong> Price anchoring (vs. DoorDash, not groceries) + Deal Motivator (50% off first box) + per-meal reframe. For retention: emphasize 18-meal tier at $11.49/meal as "best value."</p>
+<p><strong>Proof assets:</strong> DoorDash receipt comparisons, monthly savings calculator, intro offer, per-meal cost by tier.</p>
+<h4 style="font-size:0.85rem">barrier_7: What&#x27;s the risk?</h4>
+<p><strong>Consumer objection:</strong> The subscription trap fear. "Cancelling their service is nearly impossible" (attached, 1★). "Don't sign up unless you're prepared to be locked in" (Reddit). "My account was reactivated without my knowledge and my credit card was charged" (attached, 1★). "I got charged and the food hadn't shipped and they refused a refund" (BBB, attached). 4,400+ BBB complaints over 3 years, predominantly billing-related.</p>
+<p><strong>Severity:</strong> Dealbreaker for a significant segment. #1 trust barrier, reinforced by viral Reddit complaints and BBB data.</p>
+<p><strong>Creative response:</strong> Risk reversal. "Skip weeks, pause anytime, cancel in two clicks — and we'll show you how before you sign up." Directly demonstrating the cancellation process would be unprecedented and neutralize the strongest objection.</p>
+<p><strong>Proof assets:</strong> Screen recording of skip/pause/cancel flow, guarantee language, CS responsiveness testimonials.</p>
+<h4 style="font-size:0.85rem">barrier_8: Why should I trust this?</h4>
+<p><strong>Consumer objection:</strong> HelloFresh ownership raises concerns (2024 child labor investigation at Aurora, IL facility). "We do not trust this company's business practices" (attached, 2★). "This is a horrible company with fake food" (BBB, attached). Trustpilot rating is middling. BBB complaint volume is alarming for consumers who check.</p>
+<p><strong>Severity:</strong> Speed bump for most (most consumers don't check BBB). Dealbreaker for the research-heavy subset.</p>
+<p><strong>Creative response:</strong> Social proof + transparency. Lean into volume of happy customers, not institutional trust. UGC testimonials > brand claims. Long-term subscriber stories build more trust than certifications. Avoid mentioning HelloFresh proactively.</p>
+<p><strong>Proof assets:</strong> Positive Trustpilot reviews, long-term subscriber testimonials, CS recovery stories ("I had initial issues, but customer care contacted me immediately and resolved them" — attached, 5★).</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+    </div></div></div>
+</div></div>
+
+<div class="page-section" id="page-client">
+<div class="output-section">
+    <div class="output-label">Source Document</div>
+    <div class="output-title">Client Context Report</div>
+    <div class="collapse-section"><div class="collapse-header" onclick="toggleCollapse(this)">
+        <h3>Factor US — Client Context <span class="badge badge-new">SOURCE</span></h3><span class="collapse-arrow">▾</span>
+    </div><div class="collapse-body"><div class="collapse-content prose">
+        <h3 style="margin:24px 0 12px;font-size:1.1rem">Client Context Report: Factor US</h3>
+<p>Generated: April 14, 2026 | Sources: Revenue Channel Slack (L7-L14), Consumer Intelligence Report, 7 Call Transcripts (Jan–Apr 2026), 3 Internal Account Roadmaps (Jan 28, Feb 18, Mar 12), Internal Slack Thread (Mar 13), Current Events Web Search (Apr 14)</p>
+<p>Staleness flag: NYC Agenda Huddle (Jan 9) and Strikathon (Jan 15) are >60 days old; strategic direction from those has been superseded by more recent calls and roadmaps. Consumer Intelligence Report has no date stamp — treat product/market data as current but verify competitive landscape.</p>
+<p><strong>Documents NOT provided:</strong> Media Context Questionnaire, QBR/MBR presentation deck. Report reflects available sources only.</p>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>Part 1: Creative Planning Context</h4>
+<h4 style="font-size:0.85rem">Client Direction &amp; Preferences</h4>
+<ul>
+<li><strong>Partnership scope has been contentious — now landing in a good place</strong>: Stefano initially tried to pitch TS internally by segmenting us into a TOF/full-funnel-only lane while keeping the internal team in mid/bottom funnel. Jacob proposed a compromise (social-native vs. branded lane split). TJ strongly opposed any approach that restricts TS to specific funnels or ad types, arguing it leads to an adversarial relationship. Philip was brought in to handle it directly with Stefano (Mar 13 Slack thread). <strong>Good news (recent):</strong> A reporting data correction made TS ads look better — this contributed to the spend uptick. The client now appears aligned with TS being <strong>incremental</strong> to their team without restricting us to only things they can't produce. Tommy (Stefano's paternity leave coverage) is pushing for more volume and is mostly aligned with the scope of work Philip shared. *Why this matters:* The framing is currently "TS needs to be incremental" — deliberately vague and open to interpretation. This is the ideal outcome. Creative gaps should NOT be evaluated against "would their internal team make this?" (that framing leads to getting boxed in). Instead evaluate against "does this add net new reach, learnings, or performance the account wouldn't otherwise have?" Any attempt by the client to formally define which funnel stages or ad types TS can make should be resisted.</li>
+<li><strong>Client wants to pivot messaging toward "Eat like a pro, without compromise"</strong>: Across all 3 roadmaps (Jan–Mar), the client wants to move away from anti-takeout messaging and into fitness-focused, aspirational positioning. Specific personas requested: marathon runners, pilates instructors, swimmers. *Why this matters:* Anti-takeout is still TS's proven RTB4 (~10% of spend). New creative should lean into fitness/performance, but keep anti-takeout alive as a secondary lane.</li>
+<li><strong>Whitelisting now approved for Factor (partnership ads with real creators)</strong>: Tommy greenlit it. Three talents being locked in. Fake blog sites still pending. Was STUCK in all 3 roadmaps — recent unlock (Apr 9 P1s). *Why this matters:* Biggest media unlock since Stefano's arrival. Top internal performers use whitelisting. Get partnership content live fast.</li>
+<li><strong>No statics delivery allowed</strong>: RT confirmed "no delivery on statics at all" when TJ escalated. *Why this matters:* Eliminates an entire format category.</li>
+<li><strong>Deal restrictions remain strict</strong>: 50% off only at end of video or as CTA. Cannot appear in first 15 seconds or be primary RTB. Confirmed by both Meredith and Stefano in Mar 12 roadmap. *Why this matters:* All hooks must be value/problem-driven.</li>
+<li><strong>Sakara partnership creative restrictions</strong>: TS can use Sakara food visuals but can't call out the brand name. Approved copy exists in B&L. Mar 12 roadmap identifies "lack of salad visuals/creative" as a net-new gap. Melissa already scheduled salad shoots with Trent. *Why this matters:* Salad-forward creative is viable and underexploited.</li>
+<li><strong>Client wants shorter videos (≤35 seconds)</strong>: Per B&L and consistent feedback. *Why this matters:* Prioritize 10-20 second concepts.</li>
+<li><strong>Client receptive to creative newness — but Meredith resists</strong>: Growth team wants "meaningfully different" concepts. Brand team shuts down "too far out" work (stuntman rejected). Internal misalignment. *Why this matters:* Pre-approve novel concepts with Meredith, OR route through whitelisting pages.</li>
+<li><strong>Iteration requires visual refreshes</strong>: All 3 roadmaps note client calling out "Haven't you tested this before?" on simple M1s. Must include visual refreshes for first 10-15 seconds. *Why this matters:* Standard iteration methodology must be adapted.</li>
+</ul>
+<h4 style="font-size:0.85rem">Audience &amp; Market Shifts</h4>
+<ul>
+<li><strong>Age skew improved but inconsistent</strong>: Jan: delivering 35-44, client wants 25-34. Feb: shifted younger (25-34) thanks to editing improvements. Apr: still delivering 35-54 on some ads. *Why this matters:* Progress is real but not locked in.</li>
+<li><strong>RTB dominance shifted from convenience to protein</strong>: Jan: 30%/30% split. Feb: Protein at 60%. Mar: continues. *Why this matters:* Protein is the account's center of gravity.</li>
+<li><strong>GLP-1 is a confirmed high-signal angle the client abandoned</strong>: Was top header early 2025 — stopped producing. TS tested J53V1A ($244 CPA) with early signal. Mar roadmap confirms GLP-1 jobs in progress. Market accelerating: UK retailers launched GLP-1 aisles Jan 2026; US GLP-1 household penetration at 16%+; Factor expanded GLP-1 Balance line Sep 2025. *Why this matters:* Growing opportunity with unique TS positioning.</li>
+<li><strong>Older demographic (55+) untapped</strong>: Top Freshly ads targeted seniors. Factor delivers to 65+ on TS ads. Zero dedicated creative. *Why this matters:* "Cooking for one" and "my doctor told me" are proven frameworks.</li>
+<li><strong>New female messaging gap (Mar roadmap)</strong>: Client's newest creative uses female-centric hooks ("gut health + fiber," "done with wellness trends") into female-optimized sequences. TS behind. *Why this matters:* Active gap to close.</li>
+<li><strong>Factor expanding</strong>: Target retail (70+ stores), Dartmouth Smart Fridges, Sakara salads (20 weekly options). *Why this matters:* Social proof and product diversification angles.</li>
+</ul>
+<h4 style="font-size:0.85rem">Competitive &amp; Industry Context</h4>
+<ul>
+<li><strong>Client internal team improved dramatically</strong>: Now iterating, testing more, adapting TS headers, running Sakara/influencer campaigns. Mar CPA improvement driven by removing retargeting exclusions, not creative. *Why this matters:* TS value must go beyond CPA efficiency.</li>
+<li><strong>Client copying TS creative</strong>: Adapted headers, praised footage. Not yet direct copying but trending. *Why this matters:* Persona and format differentiation is the moat.</li>
+<li><strong>CookUnity running plays TS is not</strong>: Retargeting callouts, carousels, content creator personas, bleeped competitor callouts. *Why this matters:* Testable gaps.</li>
+<li><strong>DoorDash/UberEats is primary competitive frame</strong>: Factor ≈$11/meal vs. $25+ delivery app. DoorDash 56% US market. *Why this matters:* Anchor cost comparisons against delivery apps.</li>
+<li><strong>Factor Protein Power-Up Shop pop-ups (Jan 2026)</strong>: Harris Poll: 54% want to eat healthier, only 38% track protein. *Why this matters:* Brand-sanctioned stat for hooks.</li>
+<li><strong>Factor "No BS Officer" Kylie Sakaida (Sep 2025)</strong>: RD hired to bust nutrition myths. *Why this matters:* Potential whitelisting/credibility angle.</li>
+<li><strong>Factor's clean-label positioning confirmed (Mar 2026 Nutrition Insight)</strong>: 95%+ menu free from ultra-processed ingredients, BPA/PFAS-free packaging. *Why this matters:* "No seed oils," "no refined sugars" are usable and highly engaging proof points.</li>
+<li><strong>Heat & Eat segment growing faster than meal kits</strong>: $11.58B projected globally in 2026. *Why this matters:* Factor in faster-growing subsegment.</li>
+</ul>
+<h4 style="font-size:0.85rem">Performance Signals from Slack/Retros</h4>
+<ul>
+<li><strong>Performance trajectory</strong>: Jan: $358 iCPA vs $326. Feb: $319 vs $329. Mar: $203 vs $219. Apr: J38V1A at $194. Reporting data correction recently improved how TS ads look, contributing to spend uptick. *Why this matters:* TS now competitive or winning like-for-like.</li>
+<li><strong>Wallet share: 4% → 4% → 8% → 16%</strong>: Inflection driven by persona-focused jobs (J27 D1 athlete $160, J32 mom $171). *Why this matters:* Persona strategy directly responsible for growth.</li>
+<li><strong>TS spend: $224K → $289K L7 (29% WoW)</strong>: L14 hits at 8, L30 at 12. *Why this matters:* Positive but fragile.</li>
+<li><strong>Non-TS gaps revealed by top performers</strong>: Sakara ($244), Protein static ($228), GLP-1 AIDA ($225), Just.jueit Whitelist ($222), Busy Dad WIEIAD ($196). *Why this matters:* Each = testable gap.</li>
+<li><strong>Scaling campaign spend remains a problem</strong>: Repeated across all updates and roadmaps. *Why this matters:* May be media-structural.</li>
+<li><strong>Editing quality drag</strong>: All 3 roadmaps flag. Text too large, AI voiceover defaults, Home Chef visual in Factor job. *Why this matters:* Every rejection costs a week.</li>
+<li><strong>DTC UGC tested, underperformed</strong>: Mar roadmap: "weak performance." *Why this matters:* Needs more iteration before heavy investment.</li>
+</ul>
+<h4 style="font-size:0.85rem">Rejected or Restricted Creative Approaches</h4>
+<ul>
+<li><strong>Stuntman talent rejected</strong>: "Too far out."</li>
+<li><strong>Handwritten/meme statics</strong>: Brand team sensitive re: Narrative.</li>
+<li><strong>"Meat smiley face" and mushy/beige food</strong>: Banned per B&L.</li>
+<li><strong>Deal-forward creative</strong>: Can't lead or feature in first 15s.</li>
+<li><strong>Simple M1 iterations</strong>: Rejected without visual refreshes.</li>
+<li><strong>DTC UGC</strong>: Weak initial performance (not banned).</li>
+<li><strong>Funnel/format segmentation</strong>: Explicitly opposed by TJ and Philip. Escalate if client raises again.</li>
+</ul>
+<h4 style="font-size:0.85rem">Open Strategic Questions</h4>
+<ul>
+<li><strong>Will Tommy maintain Stefano's momentum?</strong> Currently yes. Risk flagged in Mar 12 roadmap.</li>
+<li><strong>How durable is the "TS is incremental" framing?</strong> Currently favorable. Could break if performance dips and client pushes for formal segmentation.</li>
+<li><strong>Will Factor success translate to HelloFresh US unblocks?</strong> Explicit strategy.</li>
+<li><strong>Reporting: exclude influencer/Sakara ads?</strong> Jeff/Todd working on it.</li>
+<li><strong>Muscle-gain claims available?</strong> Unknown.</li>
+<li><strong>Podcast/street interview viability?</strong> Team split.</li>
+<li><strong>Is Kylie Sakaida usable in TS creative?</strong> Unknown.</li>
+</ul>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>Part 2: Non-Creative Gaps</h4>
+<h4 style="font-size:0.85rem">Contradictions Found</h4>
+<ul>
+<li><strong>Partnership scope framing</strong>: QBR Prep 1.5 (Mar 23) described Stefano wanting TS to do "things their team can't." Slack thread (Mar 13) revealed Stefano pushing TOF/FF-only segmentation — a far more restrictive version. Apr 9 P1s: Tommy "mostly aligned with scope of work" and "said we need to scale." <strong>Most recent: Apr 9. Resolution:</strong> The restrictive segmentation proposal appears defused by Philip's direct conversation. Tommy's framing is more open ("scale" + "incremental") than Stefano's was ("only things we can't do"). The Mar 13 framing should NOT be treated as current direction. Current state is favorable — but regression risk exists. <strong>Impact:</strong> The first bullet in Client Direction & Preferences reflects the updated, accurate framing rather than the superseded Mar 13 version.</li>
+<li><strong>Account status classification</strong>: Two revenue reports (same date, 3 min apart) — MONITOR ($289K) vs. STALEMATE ($84K). <strong>Resolution:</strong> STALEMATE reflects older historical data. Current state is MONITOR. No impact.</li>
+<li><strong>Testing velocity</strong>: Jan: 2/week cap. Feb: reduced to 1/week. Apr: ~3/week activated. <strong>Resolution:</strong> Improved from baseline but below 7/week target.</li>
+<li><strong>Meredith reviews</strong>: Mar: "Thursdays only." Apr 9: "reviewed earlier this week." <strong>Resolution:</strong> Improving under Tommy. Not structural yet.</li>
+</ul>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>Current Events: Factor US</h4>
+<p>Searched: April 14, 2026 | Queries run: 4</p>
+<h4 style="font-size:0.85rem">Product &amp; Company News</h4>
+<ul>
+<li><strong>Jan 12, 2026</strong> Factor Press Room: Expanded into Target retail — 70+ Midwest stores. Creative relevance: "Now at Target" social proof angle.</li>
+<li><strong>Jan 7, 2026</strong> BusinessWire: Protein Power-Up Shop pop-ups (NYC, Austin, Chicago). 54% of Americans want to eat healthier, only 38% track protein. Creative relevance: Brand-sanctioned stat for protein hooks.</li>
+<li><strong>Nov 17, 2025</strong> Factor Press Room: Factor x Sakara salad launch — 20 high-protein, high-fiber salads. Creative relevance: New product category for creative.</li>
+<li><strong>Sep 8, 2025</strong> BusinessWire: Largest menu expansion (100+ weekly options), GLP-1 Balance expansion, "No BS Officer" Kylie Sakaida appointed. Creative relevance: Menu scale addresses churn; Kylie = credibility angle.</li>
+</ul>
+<h4 style="font-size:0.85rem">Industry &amp; Category Trends</h4>
+<ul>
+<li><strong>Apr 12, 2026</strong> Food Navigator: GLP-1 drugs reshaping food. Pill Wegovy at 70K US pharmacies. UK retailers launched GLP-1 aisles. US GLP-1 households at 16%+. Creative relevance: GLP-1 audience growing, Factor has genuine differentiator.</li>
+<li><strong>Mar 20, 2026</strong> Nutrition Insight: Factor featured on clean-label positioning — 95%+ menu UPF-free, PFAS-free packaging. Creative relevance: "No seed oils," "no refined sugars" are usable, controversial, engagement-driving hooks.</li>
+<li><strong>Mar 2, 2026</strong> Toast: US food delivery at $1.55T projected. Convenience > price in surveys. Creative relevance: Reinforces DoorDash as cost comparison anchor.</li>
+</ul>
+<h4 style="font-size:0.85rem">Competitive Activity</h4>
+<ul>
+<li>No significant competitor launches in L30. CookUnity continues running formats TS is not (retargeting callouts, content creator personas, bleeped competitor callouts). Freshly remains shut down. Trifecta/Fresh n' Lean low profile.</li>
+</ul>
+<h4 style="font-size:0.85rem">PR / Reputation</h4>
+<ul>
+<li>No controversy, recall, or PR issues in L30. BBB complaint profile (4,400+, billing/cancellation) remains background risk per Consumer Intelligence Report.</li>
+</ul>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+<h4>Gauntlet Usage Notes</h4>
+<p>When comparing L30 creative gaps against this report, ask:</p>
+<p>1. <strong>Does any client direction or preference make a creative gap irrelevant?</strong> Statics blocked. Deal-forward restricted to end-of-ad. Whitelisting now approved — previously blocked gaps are actionable. Simple M1 iterations without visual refreshes will be rejected. Any gap that assumes TS should only make "things the internal team can't" is based on a superseded framing — the current scope is broader ("incremental").</p>
+<p>2. <strong>Does any market/competitive shift create a NEW gap not visible in performance data alone?</strong> Yes: (a) GLP-1 abandoned by client = invisible gap. (b) 55+ personas delivering with zero dedicated creative. (c) Sakara salads = underexploited product category. (d) Female-optimized hooks = Mar roadmap gap. (e) Target retail and clean-label story unused in creative. (f) "Protein gap" stat from Factor's own Harris Poll survey is brand-sanctioned hook material.</p>
+<p>3. <strong>Are any "creative gaps" actually media or workflow gaps in disguise?</strong> Yes: Scaling campaign spend problem may be media-structural. Benchmarking distortion from influencer/partnership ads. The partnership scope risk (being boxed into TOF only) would change the entire gap prioritization if it resurfaces.</p>
+<p>4. <strong>Do the open strategic questions need resolution before certain gaps can be acted on?</strong> Yes: (a) Podcast/street interview investment needs alignment. (b) Muscle gain claims need confirmation. (c) Influencer exclusion from reporting needs implementation. (d) The "incremental" framing must hold — if it breaks and TS gets segmented, gap priorities shift fundamentally.</p>
+    </div></div></div>
+</div></div>
+
+</div><div style="height:80px"></div>
+<script>
+function toggleCollapse(h){h.parentElement.classList.toggle('open')}
+function showPage(id){document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');window.scrollTo(0,0)}
+function showTab(id,btn){const p=btn.closest('.output-section')||btn.closest('.page-section');p.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));p.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');btn.classList.add('active')}
+document.addEventListener('DOMContentLoaded',()=>{const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const v=e.target;if(v.tagName==='VIDEO'&&!v.dataset.loaded){v.load();v.dataset.loaded='true'}}})},{threshold:0.1});document.querySelectorAll('video').forEach(v=>obs.observe(v))});
+</script></body></html>
